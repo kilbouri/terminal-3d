@@ -5,10 +5,31 @@
 #include <stdlib.h>
 
 typedef unsigned int uint;
+
+/**
+ * Stores the buffers from engine initialization
+ */
 struct init_bufs {
 	char* screen_buf;
 	float* z_buf;
 };
+
+/**
+ * A floating-point vector2
+ */
+struct fvector2 {
+	float x;
+	float y;
+};
+
+/**
+ * An integer vector2
+ */
+struct vector2 {
+	int x;
+	int y;
+};
+
 /**
  * Returns the character width of the console
  */
@@ -34,37 +55,39 @@ float get_aspect() {
 	struct winsize w;
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
-	return (float)w.ws_row / w.ws_col;
+	return (float)w.ws_row / (float)w.ws_col;
+}
+
+/**
+ * Dumps the provided buffer to the console. Assumes
+ * the buffer is appropriately sized for the current size
+ * of the console.
+ */
+void show(char* buffer) {
+	printf("\033[?25l"); // hide cursor
+	printf("\033[H"); // return cursor to home
+
+	for (int pos = 0; pos < get_console_height() * get_console_width(); pos++) {
+		putchar(buffer[pos]);
+	}
+
+	printf("\e[?25h"); // show cursor
 }
 
 /**
  * Prepares a screen buffer and a Z-buffer of apropriate size. Returns a structure containing
  * each.
  */
-struct init_bufs init() {
+struct init_bufs engine_init() {
 	char* sbuf = (char*)malloc(sizeof(char) * get_console_height() * get_console_width());
 	memset(sbuf, ' ', sizeof(char) * get_console_height() * get_console_width());
 
 	float* zbuf = (float*)calloc(get_console_height() * get_console_width(), sizeof(float));
 
+	show(sbuf);
+
 	return (struct init_bufs) { sbuf, zbuf };
 }
-
-/**
- * A floating-point vector2
- */
-struct fvector2 {
-	float x;
-	float y;
-};
-
-/**
- * An integer vector2
- */
-struct vector2 {
-	int x;
-	int y;
-};
 
 /**
  * Determines x at y given two points (start and end) on a line
@@ -276,20 +299,4 @@ void fill_tri(char* buffer, struct vector2 a, struct vector2 b, struct vector2 c
 	}
 
 	draw_tri(buffer, a, b, c, brightness - 5);
-}
-
-/**
- * Dumps the provided buffer to the console. Assumes
- * the buffer is appropriately sized for the current size
- * of the console.
- */
-void show(char* buffer) {
-	printf("\033[?25l"); // hide cursor
-	printf("\033[H"); // return cursor to home
-
-	for (int pos = 0; pos < get_console_height() * get_console_width(); pos++) {
-		putchar(buffer[pos]);
-	}
-
-	printf("\e[?25h"); // show cursor
 }
