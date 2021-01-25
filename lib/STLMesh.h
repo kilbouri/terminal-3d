@@ -25,11 +25,11 @@ mesh load_stl(FILE* source) {
 	fread(hdr, 80, 1, source);
 
 	// read face count
-	int* t_count = (int*)calloc(1, sizeof(int));
-	fread(t_count, 4, 1, source);
+	int t_count;
+	fread(&t_count, 4, 1, source);
 
-	face tris[*t_count];
-	for (int i = 0; i < *t_count; i++) {
+	face* tris = (face*)calloc(t_count, sizeof(face));
+	for (int i = 0; i < t_count; i++) {
 		struct Mat* norm = ones(1, 4);
 		fread(norm->entries, 4, 3, source);
 		struct Mat* vert1 = ones(1, 4);
@@ -44,5 +44,24 @@ mesh load_stl(FILE* source) {
 		tris[i] = (face){ norm, vert1, vert2, vert3 };
 	}
 
-	return (mesh) { hdr, * t_count, tris };
+	return (mesh) { hdr, t_count, tris };
+}
+
+void print_mesh(mesh m) {
+	printf("Header: %s\n", m.header);
+	printf("Triangle Count: %d\n", m.tri_count);
+
+	for (int i = 0; i < m.tri_count; i++) {
+		printf("%d: \nNorm: \n", i);
+		showmat(m.triangles[i].norm);
+		
+		printf("Vert1: \n");
+		showmat(m.triangles[i].vert1);
+
+		printf("Vert2: \n");
+		showmat(m.triangles[i].vert2);
+
+		printf("Vert3: \n");
+		showmat(m.triangles[i].vert3);
+	}
 }

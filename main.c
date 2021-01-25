@@ -1,10 +1,10 @@
 #include "./lib/MatLib.h"
 #include "./lib/STLMesh.h"
-#include "./lib/TerminalGameEngine.h"
-
+#include "./lib/TerminalGraphics.h"
 
 struct Mat* project_screen(struct Mat*);
-struct Mat* scale_to_screen(struct Mat*);
+struct fvector2 mat_to_fvector(struct Mat*);
+
 
 /**
  * For now, these definitions control parameters
@@ -28,38 +28,46 @@ int main(int argc, const char* argv[]) {
 	mesh model = load_stl(model_src);
 	fclose(model_src);
 
+	// ----------------- 3D RENDERER --------------------
+
+	struct init_bufs buffers = init();
+	char* sbuf = buffers.screen_buf;
+	float* zbuf = buffers.z_buf;
+
 	/**
 	 * Render loop
 	 */
+	struct vector2 topleft = { 0, 0 };
+	struct vector2 bottomright = { get_console_width(), get_console_height() };
+
 	while (1) {
-		printf("Transforming for new frame...\n");
+		// reset buffer
+		fill_rect(sbuf, topleft, bottomright, 0);
+
 		for (int i = 0; i < model.tri_count; i++) {
-			/**
-			 * TODO: This is insanely inefficient. Each frame requires a tonne of garbage cleanup, FIX THAT!
-			 * TODO: Fix seg fault when actually iterating over each of the triangles in the mesh, instead of the same one repeatedly.
-			 * 		 Possibly out of bounds? Seems rather unlikely but idk its 1:40 and I'm going to bed.
-			 */
-			struct Mat* projected_vert1 = project_screen(model.triangles[0].vert1);
-			struct Mat* projected_vert2 = project_screen(model.triangles[0].vert2);
-			struct Mat* projected_vert3 = project_screen(model.triangles[0].vert3);
+			struct Mat* a = project_screen(model.triangles[i].vert1);
+			struct Mat* b = project_screen(model.triangles[i].vert2);
+			struct Mat* c = project_screen(model.triangles[i].vert3);
 
-			struct Mat* scaled_vert1 = scale_to_screen(projected_vert1);
-			struct Mat* scaled_vert2 = scale_to_screen(projected_vert2);
-			struct Mat* scaled_vert3 = scale_to_screen(projected_vert3);
+			struct vector2 vec_a = norm_to_screen(mat_to_fvector(a));
+			struct vector2 vec_b = norm_to_screen(mat_to_fvector(b));
+			struct vector2 vec_c = norm_to_screen(mat_to_fvector(c));
 
-			printf("Transformations complete. TODO: Draw now!\n");
+			draw(sbuf, vec_a, 1);
+			draw(sbuf, vec_b, 1);
+			draw(sbuf, vec_c, 1);
 
-			printf("End of this frame's, garbage collection time.\n");
-			freemat(projected_vert1);
-			freemat(projected_vert2);
-			freemat(projected_vert3);
+			// draw_tri(sbuf, vec_a, vec_b, vec_c, 5);
 
-			freemat(scaled_vert1);
-			freemat(scaled_vert2);
-			freemat(scaled_vert3);
+			freemat(a);
+			freemat(b);
+			freemat(c);
 		}
+		show(sbuf);
 	}
 }
+
+
 
 /**
  * Applies the projection matrix to the provided coordinate.
@@ -75,8 +83,7 @@ struct Mat* project_screen(struct Mat* coordinate) {
 	struct Mat* translated = scalermultiply(coordinate, 1);
 	mat_set(translated, 1, 3, mat_get(translated, 1, 3) + 3); // pushes all meshes into the screen by 3 units
 
-	struct Mat* projected = multiply(coordinate, projection_matrix);
-	
+	struct Mat* projected = multiply(translated, projection_matrix);
 	if (!mat_get(projected, 1, 4)) {
 		mat_set(projected, 1, 1, mat_get(projected, 1, 1) / mat_get(projected, 1, 4));
 		mat_set(projected, 1, 2, mat_get(projected, 1, 2) / mat_get(projected, 1, 4));
@@ -88,12 +95,11 @@ struct Mat* project_screen(struct Mat* coordinate) {
 }
 
 /**
- * Scales a normalized coordinate to screen space
+ * Extracts the screen coordinate from the provided Matrix.
  */
-struct Mat* scale_to_screen(struct Mat* proj_coordinate) {
-	struct Mat* adjusted = scalermultiply(proj_coordinate, 1);
-	mat_set(adjusted, 1, 1, (mat_get(proj_coordinate, 1, 1) + 1) * get_console_width() * 0.5);
-	mat_set(adjusted, 1, 2, (mat_get(proj_coordinate, 1, 2) + 1) * get_console_height() * 0.5);
+struct fvector2 mat_to_fvector(struct Mat* vec) {
+	float x = mat_get(vec, 1, 1);
+	float y = mat_get(vec, 2, 1);
 
-	return adjusted;
+	return (struct fvector2){x, y};
 }
