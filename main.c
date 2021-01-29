@@ -3,6 +3,7 @@
 #include "./lib/TerminalGraphics.h"
 #include "./lib/Utilities.h"
 
+struct Mat* get_triangle_matrix(struct Mat*, struct Mat*, struct Mat*, struct Mat*);
 struct Mat* project_screen(struct Mat*);
 struct fvector2 mat_to_fvector(struct Mat*);
 struct Mat* get_rotation_matrix(float, float);
@@ -23,11 +24,12 @@ struct Mat* get_rotation_matrix(float, float);
 #define fNEAR 0.1
 #define fFAR 1000
 #define FRUSTRUM (fFAR / (fFAR - fNEAR))
-#define FOV 135
+#define FOV 90
 #define DIST_CORRECTION (1.0 / tan(FOV * 0.5 * (3.1415926 / 180.0)))
 #define TERMINAL_CORRECTION 0.5
-#define X_ROT_SPEED 0.010;
-#define Y_ROT_SPEED 0.015;
+#define X_ROT_SPEED 0.0125
+#define Y_ROT_SPEED 0.015
+#define SCALE 1
 
 int main(int argc, const char* argv[]) {
 	FILE* model_src;
@@ -42,55 +44,44 @@ int main(int argc, const char* argv[]) {
 	fclose(model_src);
 
 	// ----------------- 3D RENDERER --------------------
-
-	struct init_bufs buffers = engine_init();
-	char* sbuf = buffers.screen_buf;
-	float* zbuf = buffers.z_buf;
+	struct engine_bufs buffers = engine_init();
 
 	/**
 	 * Render loop
 	 */
-	struct vector2 topleft = { 0, 0 };
-	struct vector2 bottomright = { get_console_width(), get_console_height() };
-
-	float x_rot = 0;
+	float x_rot = -M_PI/8;
 	float y_rot = 0;
 
 	while (1) {
+
 		// reset buffer (keep as close to computation loop as possible to minimize flashing!)
-		fill_rect(sbuf, topleft, bottomright, 0);
+		fill_rect(buffers.screen, (struct vector2) {0, 0}, (struct vector2) { buffers.screen.cols, buffers.screen.rows }, 0);
 
 		// get this frame's rotation matrix
 		struct Mat* rotation = get_rotation_matrix(x_rot, y_rot);
 		for (int i = 0; i < model.tri_count; i++) {
+			struct Mat* scaled = scalermultiply(model.triangles[i], SCALE);
+			struct Mat* rotated = multiply(scaled, rotation);
+			struct Mat* projected = project_screen(rotated);
 
-			struct Mat* rotated_a = multiply(model.triangles[i].vert1, rotation);
-			struct Mat* rotated_b = multiply(model.triangles[i].vert2, rotation);
-			struct Mat* rotated_c = multiply(model.triangles[i].vert3, rotation);
+			struct fvector2 vec_a = { mat_get(projected, 2, 1), mat_get(projected, 2, 2)};
+			struct fvector2 vec_b = { mat_get(projected, 3, 1), mat_get(projected, 3, 2)};
+			struct fvector2 vec_c = { mat_get(projected, 4, 1), mat_get(projected, 4, 2)};
 
-			struct Mat* a = project_screen(rotated_a);
-			struct Mat* b = project_screen(rotated_b);
-			struct Mat* c = project_screen(rotated_c);
-
-			struct vector2 vec_a = norm_to_screen(mat_to_fvector(a));
-			struct vector2 vec_b = norm_to_screen(mat_to_fvector(b));
-			struct vector2 vec_c = norm_to_screen(mat_to_fvector(c));
+			struct vector2 v1 = norm_to_screen(buffers.screen, vec_a);
+			struct vector2 v2 = norm_to_screen(buffers.screen, vec_b);
+			struct vector2 v3 = norm_to_screen(buffers.screen, vec_c);
 
 			// draw calls
-			draw_tri(sbuf, vec_a, vec_b, vec_c, 1);
+			draw_tri(buffers.screen, v1, v2, v3, 9);
 
 			// garbage collection
-			freemat(rotated_a);
-			freemat(rotated_b);
-			freemat(rotated_c);
-
-			freemat(a);
-			freemat(b);
-			freemat(c);
+			freemat(scaled);
+			freemat(rotated);
 		}
 
 		// display
-		show(sbuf);
+		show(buffers.screen);
 
 		x_rot += X_ROT_SPEED;
 		y_rot += Y_ROT_SPEED;
@@ -99,15 +90,11 @@ int main(int argc, const char* argv[]) {
 	}
 }
 
-
-
 /**
  * Applies the projection matrix to the provided coordinate.
  */
-struct Mat* project_screen(struct Mat* coordinate) {
+struct Mat* project_screen(struct Mat* face) {
 	struct Mat* projection_matrix = zeros(4, 4);
-
-	double wtf = DIST_CORRECTION;
 
 	mat_set(projection_matrix, 1, 1, DIST_CORRECTION * get_aspect());
 	mat_set(projection_matrix, 2, 2, DIST_CORRECTION * TERMINAL_CORRECTION);
@@ -115,7 +102,7 @@ struct Mat* project_screen(struct Mat* coordinate) {
 	mat_set(projection_matrix, 4, 3, -fNEAR * FRUSTRUM);
 	mat_set(projection_matrix, 3, 4, 1);
 
-	struct Mat* translated = scalermultiply(coordinate, 1);
+	struct Mat* translated = copyvalue(face);
 	mat_set(translated, 1, 3, mat_get(translated, 1, 3) + 3); // pushes all meshes into the screen by 3 units
 
 	struct Mat* projected = multiply(translated, projection_matrix);

@@ -2,8 +2,14 @@
 #include "MatLib.h"
 #endif
 
-typedef struct face { struct Mat* norm; struct Mat* vert1; struct Mat* vert2; struct Mat* vert3; } face;
-typedef struct mesh { char* header; int tri_count; face* triangles; } mesh;
+/**
+ * Stores a mesh in a 4x4 matrix:
+ * [ normal ]
+ * [ vert 1 ]
+ * [ vert 2 ]
+ * [ vert 3 ]
+ */
+typedef struct mesh { char* header; int tri_count; struct Mat** triangles; } mesh;
 
 /**
  * Loads a non-ASCII STL mesh by the standard:
@@ -28,40 +34,19 @@ mesh load_stl(FILE* source) {
 	int t_count;
 	fread(&t_count, 4, 1, source);
 
-	face* tris = (face*)calloc(t_count, sizeof(face));
+	struct Mat** tris = (struct Mat**)calloc(t_count, sizeof(struct Mat));
 	for (int i = 0; i < t_count; i++) {
-		struct Mat* norm = ones(1, 4);
-		fread(norm->entries, 4, 3, source);
-		struct Mat* vert1 = ones(1, 4);
-		fread(vert1->entries, 4, 3, source);
-		struct Mat* vert2 = ones(1, 4);
-		fread(vert2->entries, 4, 3, source);
-		struct Mat* vert3 = ones(1, 4);
-		fread(vert3->entries, 4, 3, source);
+		tris[i] = ones(4, 4);
+		for (int r = 1; r <= 4; r++) {
+			for (int c = 1; c < 4; c++) {
+				float value;
+				fread(&value, 4, 1, source);
+				
+				mat_set(tris[i], r, c, value);
+			}
+		}
 
 		fseek(source, 2, SEEK_CUR);
-
-		tris[i] = (face){ norm, vert1, vert2, vert3 };
 	}
-
 	return (mesh) { hdr, t_count, tris };
-}
-
-void print_mesh(mesh m) {
-	printf("Header: %s\n", m.header);
-	printf("Triangle Count: %d\n", m.tri_count);
-
-	for (int i = 0; i < m.tri_count; i++) {
-		printf("%d: \nNorm: \n", i);
-		showmat(m.triangles[i].norm);
-		
-		printf("Vert1: \n");
-		showmat(m.triangles[i].vert1);
-
-		printf("Vert2: \n");
-		showmat(m.triangles[i].vert2);
-
-		printf("Vert3: \n");
-		showmat(m.triangles[i].vert3);
-	}
 }

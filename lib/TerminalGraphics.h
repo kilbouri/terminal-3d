@@ -6,12 +6,17 @@
 
 typedef unsigned int uint;
 
+struct screen_buf {
+	int rows;
+	int cols;
+	char* chars;
+};
+
 /**
  * Stores the buffers from engine initialization
  */
-struct init_bufs {
-	char* screen_buf;
-	float* z_buf;
+struct engine_bufs {
+	struct screen_buf screen;
 };
 
 /**
@@ -59,114 +64,116 @@ float get_aspect() {
 }
 
 /**
- * Dumps the provided buffer to the console. Assumes
- * the buffer is appropriately sized for the current size
- * of the console.
+ * Dumps the provided buffer to the console. Pads the view area as needed 
+ * with spaces if the provided buffer is smaller than the console's current
+ * dimensions in either axis.
  */
-void show(char* buffer) {
+void show(struct screen_buf buffer) {
 	printf("\033[?25l"); // hide cursor
 	printf("\033[H"); // return cursor to home
 
-	for (int pos = 0; pos < get_console_height() * get_console_width(); pos++) {
-		putchar(buffer[pos]);
+	for (int y = 0; y < get_console_height(); y++) {
+		for (int x = 0; x < get_console_width(); x++) {
+			// draw from buffer if inside view area, else draw blank
+			if (y < buffer.rows && x < buffer.cols)
+				putchar(buffer.chars[y * buffer.cols + x]);
+			else
+				putchar(' ');
+		}
 	}
 
 	printf("\e[?25h"); // show cursor
 }
 
 /**
- * Prepares a screen buffer and a Z-buffer of apropriate size. Returns a structure containing
- * each.
+ * Prepares the needed buffers of apropriate size. Returns a structure
+ * containing each of the engine's buffers.
  */
-struct init_bufs engine_init() {
-	char* sbuf = (char*)malloc(sizeof(char) * get_console_height() * get_console_width());
-	memset(sbuf, ' ', sizeof(char) * get_console_height() * get_console_width());
+struct engine_bufs engine_init() {
+	long size = get_console_height() * get_console_width();
 
-	float* zbuf = (float*)calloc(get_console_height() * get_console_width(), sizeof(float));
+	char* sbuf = (char*)malloc(sizeof(char) * size);
+	memset(sbuf, ' ', sizeof(char) * size);
 
-	show(sbuf);
-
-	return (struct init_bufs) { sbuf, zbuf };
-}
-
-/**
- * Determines x at y given two points (start and end) on a line
- */
-float linear_interpolate(struct vector2 start, struct vector2 end, int y) {
-	int x1 = start.x, y1 = start.y;
-	int x2 = end.x, y2 = end.y;
-
-	int dy = y2 - y1;
-	int dx = x2 - x1;
-
-	return x1 + ((y - y1) * dx / (dy ? dy : 1));
+	return (struct engine_bufs) {
+		(struct screen_buf){ .rows = get_console_height(), .cols = get_console_width(), .chars = sbuf }
+	};
 }
 
 /**
  * Converts a floating point normalized cartisian coordinate to
  * the screen space
  */
-struct vector2 norm_to_screen(struct fvector2 coordinate) {
+struct vector2 norm_to_screen(struct screen_buf buffer, struct fvector2 coordinate) {
 
 	float x = 0.5 * (coordinate.x + 1);
 	float y = 0.5 * (coordinate.y + 1);
 
-	x *= get_console_width();
-	y *= get_console_height() - 1;
+	x *= buffer.cols;
+	y *= buffer.rows - 1;
 
 	return (struct vector2) { (int)x, (int)y };
 }
 
 /**
  * Ensures the point (x, y) falls within the bounds of the
- * ConsoleGameEngine's view area.
+ * view area.
  */
-void clip(int* x, int* y) {
+void clip(struct screen_buf buffer, int* x, int* y) {
 	*x = (*x < 0) ? 0 : *x;
 	*y = (*y < 0) ? 0 : *y;
 
-	int width = get_console_width();
-	int height = get_console_height();
+	int width = buffer.cols;
+	int height = buffer.rows;
 
 	*x = (*x > width) ? width : *x;
 	*y = (*y > height) ? height : *y;
 }
 
 /**
+ * Sets a single character at the specified coordinate in the provided buffer.
+ */
+void set_pixel(struct screen_buf buffer, struct vector2 coordinate, char character) {
+	int x = coordinate.x, y = coordinate.y;
+
+	if (0 <= x && x <= buffer.cols && 0 <= y && y <= buffer.rows)
+		buffer.chars[y * buffer.cols + x] = character;
+}
+
+/**
  * Draws a "pixel" to the console at the provided coordinate with a brightness
  * between 0 and 12.
  */
-void draw(char* buffer, struct vector2 coordinate, int brightness) {
-	uint screen_width = get_console_width();
-	uint screen_height = get_console_height();
+void draw(struct screen_buf buffer, struct vector2 coordinate, int brightness) {
+	char brights[] = " .,-~:;=!*#$@";
 
-	int x = coordinate.x, y = coordinate.y;
+	brightness = brightness < 0 ? 0 : brightness; // min
+	brightness = brightness > 12 ? 12 : brightness; // max
 
-	if (0 <= x && x <= screen_width && 0 <= y && y <= screen_height) {
-		char brights[] = " .,-~:;=!*#$@";
-
-		brightness = brightness < 0 ? 0 : brightness; // min
-		brightness = brightness > 12 ? 12 : brightness; // max
-
-		buffer[y * screen_width + x] = brights[brightness];
-	}
+	set_pixel(buffer, coordinate, brights[brightness]);
 }
 
 /**
  * Fills a the box formed by the opposite corners coord1 and coord2
  */
-void fill_rect(char* buffer, struct vector2 coord1, struct vector2 coord2, int brightness) {
+void fill_rect(struct screen_buf buffer, struct vector2 coord1, struct vector2 coord2, int brightness) {
 	int x = coord1.x; int y = coord1.y;
 	int x1 = coord2.x; int y1 = coord2.y;
 
-	clip(&x, &y);
-	clip(&x1, &y1);
+	clip(buffer, &x, &y);
+	clip(buffer, &x1, &y1);
 
-	if (x > x1)
-		x1 = (x1 + x) - (x = x1); // swap x and x1
+	if (x > x1) {
+		x1 += x;
+		x = x1 - x;
+		x1 -= x;
+	}
 
-	if (y > y1)
-		y1 = (y1 + y) - (y = y1); // swap x and x1
+	if (y > y1) {
+		y1 += y;
+		y = y1 - y;
+		y1 -= y;
+	}
 
 	for (int cx = x; cx < x1; cx++) {
 		for (int cy = y; cy < y1; cy++) {
@@ -181,7 +188,7 @@ void fill_rect(char* buffer, struct vector2 coord1, struct vector2 coord2, int b
  * Algorithm adapted from OneLoneCoder's C++ ConsoleGameEngine.
  * https://github.com/OneLoneCoder/videos/blob/master/olcConsoleGameEngine.h#L477
  */
-void draw_line(char* buffer, struct vector2 coord1, struct vector2 coord2, int brightness) {
+void draw_line(struct screen_buf buffer, struct vector2 coord1, struct vector2 coord2, int brightness) {
 	int x1 = coord1.x, x2 = coord2.x;
 	int y1 = coord1.y, y2 = coord2.y;
 
@@ -251,7 +258,7 @@ void draw_line(char* buffer, struct vector2 coord1, struct vector2 coord2, int b
 /**
  * Shorthand for calling draw_line() three times
  */
-void draw_tri(char* buffer, struct vector2 a, struct vector2 b, struct vector2 c, int brightness) {
+void draw_tri(struct screen_buf buffer, struct vector2 a, struct vector2 b, struct vector2 c, int brightness) {
 	draw_line(buffer, a, b, brightness);
 	draw_line(buffer, b, c, brightness);
 	draw_line(buffer, c, a, brightness);
@@ -260,43 +267,6 @@ void draw_tri(char* buffer, struct vector2 a, struct vector2 b, struct vector2 c
 /**
  * Draws a filled triangle
  */
-void fill_tri(char* buffer, struct vector2 a, struct vector2 b, struct vector2 c, int brightness) {
-	// sort so that a, b, and c are in order, vertically.
-	struct vector2 tempCoord;
-	if (b.y < a.y) {
-		// swap a and b
-		tempCoord = a;
-		a = b;
-		b = tempCoord;
-	}
-	if (c.y < a.y) {
-		// swap c and a
-		tempCoord = c;
-		c = a;
-		a = tempCoord;
-	}
-	if (c.y < b.y) {
-		// swap c and b
-		tempCoord = c;
-		c = b;
-		b = tempCoord;
-	}
+void fill_tri(struct screen_buf buffer, struct vector2 v1, struct vector2 v2, struct vector2 v3, int brightness) {
 
-	for (int y = a.y; y <= c.y; y++) {
-		int x1, x2;
-		if (y <= b.y) { // 'top' half
-			x1 = (int)linear_interpolate(a, b, y - a.y);
-			x2 = (int)linear_interpolate(a, c, y - a.y);
-		} else { // 'bottom' half
-			x1 = (int)linear_interpolate(b, c, y - a.y);
-			x2 = (int)linear_interpolate(a, c, y - a.y);
-		}
-
-		struct vector2 p1 = { x1, y };
-		struct vector2 p2 = { x2, y };
-
-		draw_line(buffer, p1, p2, brightness);
-	}
-
-	draw_tri(buffer, a, b, c, brightness - 5);
 }
