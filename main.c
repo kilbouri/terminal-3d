@@ -1,3 +1,7 @@
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+
 #include "./lib/MatLib.h"
 #include "./lib/STLMesh.h"
 #include "./lib/TerminalGraphics.h"
@@ -30,14 +34,28 @@ struct Mat* get_rotation_matrix(float, float);
 #define X_ROT_SPEED 0.0125
 #define Y_ROT_SPEED 0.015
 #define SCALE 1
+#define DEFAULT_FILE "./models/cube.stl"
+
+static FILE *open_or_die(const char *filename)
+{
+	FILE *f;
+
+	f = fopen(filename, "r");
+	if (!f) {
+		fprintf(stderr, "Failed to open %s: %s\n", filename, strerror(errno));
+		exit(1);
+	}
+	return f;
+}
 
 int main(int argc, const char* argv[]) {
 	FILE* model_src;
+
 	if (argc >= 2) {
-		model_src = fopen(argv[1], "r");
+		model_src = open_or_die(argv[1]);
 	} else {
-		puts("Defaulting to /models/cube.stl...");
-		model_src = fopen("./models/cube.stl", "r");
+		printf("Defaulting to %s...", DEFAULT_FILE);
+		model_src = open_or_die(DEFAULT_FILE);
 	}
 
 	mesh model = load_stl(model_src);
