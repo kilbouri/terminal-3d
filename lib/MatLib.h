@@ -432,6 +432,7 @@ struct Mat* null(struct Mat* A) {
 	int nn = RRM->col - RRM->row;
 	if (nn == 0) {
 		struct Mat* N = newmat(0, 0, 0);
+		freemat(RRM);
 		return N;
 	}
 	struct Mat* R1 = submat(RRM, 1, RRM->row, 1, RRM->row);
