@@ -1,13 +1,9 @@
-terminal3d.exe: t3dmath.o t3dgraphics.o stlmesh.o
-	gcc -Wall main.c t3dmath.o t3dgraphics.o stlmesh.o -o terminal3d.exe -lm -O3
-# post compilation cleanup:
-	rm *.o
+NAME?=catmesh
 
-t3dmath.o:
-	gcc -c t3dmath.c -O3
+CFLAGS=-Wall --pedantic
 
-t3dgraphics.o:
-	gcc -c t3dgraphics.c -O3
+${NAME}:	main.c lib/MatLib.h lib/STLMesh.h lib/TerminalGraphics.h lib/Utilities.h
+	$(CC) ${CFLAGS} -o ${NAME} main.c -lm
 
-stlmesh.o:
-	gcc -c stlmesh.c -O3
+clean:
+	rm -f ${NAME}

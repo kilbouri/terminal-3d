@@ -34,7 +34,7 @@ mesh load_stl(FILE* source) {
 	int t_count;
 	fread(&t_count, 4, 1, source);
 
-	struct Mat** tris = (struct Mat**)calloc(t_count, sizeof(struct Mat));
+	struct Mat** tris = (struct Mat**)calloc(t_count, sizeof(struct Mat *));
 	for (int i = 0; i < t_count; i++) {
 		tris[i] = ones(4, 4);
 		for (int r = 1; r <= 4; r++) {
