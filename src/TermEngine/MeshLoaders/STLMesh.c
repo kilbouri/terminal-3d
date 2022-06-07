@@ -4,14 +4,15 @@
 #include "../TermEngine.h"
 
 Vector3 ReadVector3(FILE* source) {
-    Vector3 vec;
+    float tempX, tempY, tempZ;
 
-    fread(&vec.x, 4, 1, source);
-    fread(&vec.y, 4, 1, source);
-    fread(&vec.z, 4, 1, source);
+    fread(&tempX, 4, 1, source);
+    fread(&tempY, 4, 1, source);
+    fread(&tempZ, 4, 1, source);
 
-    return vec;
+    return (Vector3) { tempX, tempY, tempZ };
 }
+
 
 Mesh* LoadMesh(FILE* source) {
     // skip header
@@ -23,6 +24,8 @@ Mesh* LoadMesh(FILE* source) {
 
     // load triangles
     Mesh* mesh = (Mesh*) malloc(sizeof(Mesh) + sizeof(Triangle) * triCount);
+    mesh->triangleCount = triCount;
+
     for (int tri = 0; tri < triCount; tri++) {
         mesh->triangles[tri].normal = ReadVector3(source);
         mesh->triangles[tri].v1 = ReadVector3(source);

@@ -32,7 +32,6 @@ double ComputeDepth(ScreenPoint p1, ScreenPoint p2, ScreenPoint pActual) {
     if (p1.x == p2.x && p1.y == p2.y) return p1.depth;
 
     int vMin, vMax, vActual;
-    double depthVMin = p1.depth, depthVMax = p2.depth;
 
     int dX = Abs(p2.x - p1.x);
     int dY = Abs(p2.y - p1.y);
@@ -58,7 +57,6 @@ void DrawLine(ColorBuffer* colorBuffer, DepthBuffer* depthBuffer, ScreenPoint fr
     int x1 = from.x, y1 = from.y;
     int x2 = to.x, y2 = to.y;
 
-    double depth;
     int x, y, xEnd, yEnd, i;
     int usdx = x2 - x1;
     int usdy = y2 - y1;

@@ -1,6 +1,7 @@
 #include "./lib/MatLib.c"
 #include "./lib/STLMesh.c"
 #include "./lib/Utilities.c"
+#include "./lib/TerminalGraphics.c"
 
 struct Mat* get_triangle_matrix(struct Mat*, struct Mat*, struct Mat*, struct Mat*);
 struct Mat* project_screen(struct Mat*);
@@ -13,7 +14,7 @@ struct Mat* get_rotation_matrix(float, float);
  *
  * fNEAR 				- near clipping plane
  * fFAR 				- far clipping plane
- * FRUSTRUM 			- the camera view plane calculation
+ * FRUSTUM 			- the camera view plane calculation
  * FOV 					- the camera's field of view. Integer multiples of 180 are bad news!
  * DIST_CORRECTION 		- the distance correction calculation
  * TERMINAL_CORRECTION	- scales the vertical axis to fix vertical stretching in the final rasterization
@@ -22,7 +23,7 @@ struct Mat* get_rotation_matrix(float, float);
  */
 #define fNEAR 0.1
 #define fFAR 1000
-#define FRUSTRUM (fFAR / (fFAR - fNEAR))
+#define FRUSTUM (fFAR / (fFAR - fNEAR))
 #define FOV 90
 #define DIST_CORRECTION (1.0 / tan(FOV * 0.5 * (3.1415926 / 180.0)))
 #define TERMINAL_CORRECTION 0.5
@@ -97,8 +98,8 @@ struct Mat* project_screen(struct Mat* face) {
 
     mat_set(projection_matrix, 1, 1, DIST_CORRECTION * get_aspect());
     mat_set(projection_matrix, 2, 2, DIST_CORRECTION * TERMINAL_CORRECTION);
-    mat_set(projection_matrix, 3, 3, FRUSTRUM);
-    mat_set(projection_matrix, 4, 3, -fNEAR * FRUSTRUM);
+    mat_set(projection_matrix, 3, 3, FRUSTUM);
+    mat_set(projection_matrix, 4, 3, -fNEAR * FRUSTUM);
     mat_set(projection_matrix, 3, 4, 1);
 
     struct Mat* translated = copyvalue(face);

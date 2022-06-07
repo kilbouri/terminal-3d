@@ -2,6 +2,8 @@
 
 #include "TermEngine.h"
 #include "TermRendering.h"
+#include "TermDrawing.h"
+#include "TermMath.h"
 
 void Render(ColorBuffer* colorBuffer) {
     int numElements = colorBuffer->w * colorBuffer->h;
@@ -19,17 +21,17 @@ ScreenPoint Project(Vector3 point, FrameConstants constants) {
     double x = point.x;
     double y = point.y;
     double z = point.z;
-    double zInverse = 1 / (z == 0 ? __FLT_EPSILON__ : z);
+    double zInverse = 1.0 / (z == 0 ? 1 : z);
 
     // TODO: this can be enhanced with SIMD... especially if we rework
     // to do all three vertices at the same time...
-    x = x * constants.aspectRatio * constants.distanceCorrection * zInverse;
-    y = y * constants.distanceCorrection * zInverse;
-    z = z * constants.frustum - (constants.frustum * constants.zNear);
+    x = x * constants.aspectRatio * constants.distanceScaling * zInverse;
+    y = y * constants.distanceScaling * zInverse;
+    z = ((z * constants.frustum) - (constants.frustum * constants.zNear)) * zInverse;
 
     ScreenPoint screenPoint = {
-        .x = (int) x,
-        .y = (int) y,
+        .x = (int) (0.5 * (x + 1) * constants.viewportWidth),
+        .y = (int) (0.5 * (y + 1) * constants.viewportHeight),
         .depth = z
     };
 
@@ -37,18 +39,20 @@ ScreenPoint Project(Vector3 point, FrameConstants constants) {
 }
 
 void DrawMesh(Mesh* mesh, ColorBuffer* colorBuffer, DepthBuffer* depthBuffer, FrameConstants constants) {
-    // foreach triangle in mesh
-    //      transform vertices
-    //      calculate normal
-    //      draw transformed
+    Transform meshTransform = mesh->transform;
 
     for (int i = 0; i < mesh->triangleCount; i++) {
-        ScreenPoint v1 = Project(mesh->triangles[i].v1, constants);
-        ScreenPoint v2 = Project(mesh->triangles[i].v2, constants);
-        ScreenPoint v3 = Project(mesh->triangles[i].v3, constants);
+        Triangle tri = mesh->triangles[i];
 
-        //DrawLine(v1, v2, colorBuffer, depthBuffer);
-        //DrawLine(v2, v3, colorBuffer, depthBuffer);
-        //DrawLine(v3, v1, colorBuffer, depthBuffer);
+        Vector3 v1Transformed = Vector3Add(Vector3ScalarMul(tri.v1, meshTransform.scale.x), meshTransform.position);
+        Vector3 v2Transformed = Vector3Add(Vector3ScalarMul(tri.v2, meshTransform.scale.y), meshTransform.position);
+        Vector3 v3Transformed = Vector3Add(Vector3ScalarMul(tri.v3, meshTransform.scale.z), meshTransform.position);
+
+        ScreenPoint v1 = Project(v1Transformed, constants);
+        ScreenPoint v2 = Project(v2Transformed, constants);
+        ScreenPoint v3 = Project(v3Transformed, constants);
+
+        Color c = { 0, 130, 130 };
+        DrawWireTriangle(colorBuffer, depthBuffer, v1, v2, v3, c);
     }
 }

@@ -3,6 +3,7 @@
 #include <math.h>
 
 #include "TermEngine.h"
+#include "TermMath.h"
 
 void* AllocBuffer(size_t structSize, int numElements, size_t elementSize) {
     return malloc(structSize + (numElements * elementSize));
@@ -52,8 +53,8 @@ void FreeDepthBuffer(DepthBuffer* buff) {
 }
 
 FrameConstants GetFrameConstants(EngineConfig config) {
-    double aspect = config.viewportWidth / config.viewportHeight;
-    double distanceCorrection = 1 / tan(config.fovRadians);
+    double aspect = (double) config.viewportHeight / config.viewportWidth;
+    double distanceScaling = 1.0 / tan(0.5 * config.fovRadians);
     double frustum = config.zFar / (config.zFar - config.zNear);
 
     FrameConstants constants = {
@@ -64,7 +65,7 @@ FrameConstants GetFrameConstants(EngineConfig config) {
         .zFar = config.zFar,
         .frustum = frustum,
         .fovRadians = config.fovRadians,
-        .distanceCorrection = distanceCorrection
+        .distanceScaling = distanceScaling
     };
 
     return constants;
