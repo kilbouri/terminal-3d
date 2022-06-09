@@ -1,8 +1,19 @@
-#ifndef STL_MESH_H
-#define STL_MESH_H
+#ifndef MESH_H
+#define MESH_H
 
 #include <stdio.h>
-#include "../TermEngine.h"
+
+#include "../Math/Vector.h"
+
+typedef struct {
+    Vector3 normal;
+    Vector3 v1, v2, v3;
+} Triangle;
+
+typedef struct {
+    int triangleCount;
+    Triangle triangles[];
+} Mesh;
 
 /**
  * Loads a non-ASCII STL Mesh by the standard:
@@ -18,6 +29,9 @@
  * 	  short    – Attribute byte count -  2 bytes (ignored)
  * end
  */
-Mesh* LoadMesh(FILE* source);
+Mesh* LoadMeshFromSTL(FILE* stlSource);
 
-#endif // STL_MESH_H
+Mesh* AllocateMesh(int triangleCount);
+void FreeMesh(Mesh* mesh);
+
+#endif // MESH_H

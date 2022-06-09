@@ -1,7 +1,7 @@
 #ifndef TERM_DEBUG_H
 #define TERM_DEBUG_H
 
-#include "TermEngine.h"
+#include "Mesh/Mesh.h"
 
 void DumpMesh(Mesh* mesh);
 

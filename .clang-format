@@ -1,0 +1,7 @@
+BasedOnStyle: LLVM
+ColumnLimit: 0
+IndentWidth: 4
+PointerAlignment: Left
+AlignArrayOfStructures: None
+SpaceBeforeCpp11BracedList: True
+SortIncludes: false

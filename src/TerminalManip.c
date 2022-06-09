@@ -30,3 +30,7 @@ void SetRawIO(bool enabled) {
 void SetCursorVisible(bool visible) {
     printf(visible ? "\033[?25h" : "\033[?25l");
 }
+
+void CursorToHome() {
+    printf("\033[H");
+}

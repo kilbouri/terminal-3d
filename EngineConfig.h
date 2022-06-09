@@ -7,6 +7,9 @@
 #define Z_FAR 100
 #define Z_NEAR 0.01
 
+// how many horizontal characters does it take to take up the same width as a vertical pixel?
+#define MONOSPACE_ASPECT_RATIO 1.45
+
 // temporary model source
 #define MODEL_SOURCE "./models/cube.stl"
 

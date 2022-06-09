@@ -55,7 +55,7 @@ int main(int argc, const char* argv[]) {
     while (1) {
 
         // reset buffer (keep as close to computation loop as possible to minimize flashing!)
-        fill_rect(buffers.screen, (struct vector2) { 0, 0 }, (struct vector2) { buffers.screen.cols, buffers.screen.rows }, 0);
+        fill_rect(buffers.screen, (struct vector2) {0, 0}, (struct vector2) {buffers.screen.cols, buffers.screen.rows}, 0);
 
         // get this frame's rotation matrix
         struct Mat* rotation = get_rotation_matrix(x_rot, y_rot);
@@ -64,9 +64,9 @@ int main(int argc, const char* argv[]) {
             struct Mat* rotated = multiply(scaled, rotation);
             struct Mat* projected = project_screen(rotated);
 
-            struct fvector2 vec_a = { mat_get(projected, 2, 1), mat_get(projected, 2, 2) };
-            struct fvector2 vec_b = { mat_get(projected, 3, 1), mat_get(projected, 3, 2) };
-            struct fvector2 vec_c = { mat_get(projected, 4, 1), mat_get(projected, 4, 2) };
+            struct fvector2 vec_a = {mat_get(projected, 2, 1), mat_get(projected, 2, 2)};
+            struct fvector2 vec_b = {mat_get(projected, 3, 1), mat_get(projected, 3, 2)};
+            struct fvector2 vec_c = {mat_get(projected, 4, 1), mat_get(projected, 4, 2)};
 
             struct vector2 v1 = norm_to_screen(buffers.screen, vec_a);
             struct vector2 v2 = norm_to_screen(buffers.screen, vec_b);
@@ -123,7 +123,7 @@ struct fvector2 mat_to_fvector(struct Mat* vec) {
     float x = mat_get(vec, 1, 1);
     float y = mat_get(vec, 1, 2);
 
-    return (struct fvector2) { x, y };
+    return (struct fvector2) {x, y};
 }
 
 /**
@@ -133,16 +133,16 @@ struct fvector2 mat_to_fvector(struct Mat* vec) {
 struct Mat* get_rotation_matrix(float x, float y) {
     struct Mat* x_rot = zeros(3, 3);
     mat_set(x_rot, 1, 1, 1);
-    mat_set(x_rot, 2, 2, cos(x));	// [  1    0       0    ]
-    mat_set(x_rot, 2, 3, -sin(x));	// [  0  cos(x) -sin(x) ]
-    mat_set(x_rot, 3, 2, sin(x));	// [  0  sin(x)  cos(x) ]
+    mat_set(x_rot, 2, 2, cos(x));  // [  1    0       0    ]
+    mat_set(x_rot, 2, 3, -sin(x)); // [  0  cos(x) -sin(x) ]
+    mat_set(x_rot, 3, 2, sin(x));  // [  0  sin(x)  cos(x) ]
     mat_set(x_rot, 3, 3, cos(x));
 
     struct Mat* y_rot = zeros(3, 3);
     mat_set(y_rot, 1, 1, cos(y));
-    mat_set(y_rot, 1, 3, sin(y));	// [  cos(y)  0  sin(y) ]
-    mat_set(y_rot, 2, 2, 1);		// [   0      1    0    ]
-    mat_set(y_rot, 3, 1, -sin(y));	// [ -sin(y)  0  cos(y) ]
+    mat_set(y_rot, 1, 3, sin(y));  // [  cos(y)  0  sin(y) ]
+    mat_set(y_rot, 2, 2, 1);       // [   0      1    0    ]
+    mat_set(y_rot, 3, 1, -sin(y)); // [ -sin(y)  0  cos(y) ]
     mat_set(y_rot, 3, 3, cos(y));
 
     struct Mat* result = multiply(x_rot, y_rot);

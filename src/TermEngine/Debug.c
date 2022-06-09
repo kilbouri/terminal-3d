@@ -1,7 +1,7 @@
-#include "TermDebug.h"
-#include "TermEngine.h"
-
 #include <stdio.h>
+
+#include "Math/Vector.h"
+#include "Mesh/Mesh.h"
 
 void PrintVector3(Vector3 val);
 
