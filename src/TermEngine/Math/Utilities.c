@@ -6,16 +6,17 @@ float Lerp(float a, float b, float t) {
 
 float InverseSqrt(float x) {
     long i;
-    float halfX, y;
-    const float threeHalves = 1.5f;
-    const float fuckedNumber = 0x5f3759df;
+    float x2, y;
+    const float threeHalfs = 1.5F;
 
+    x2 = x * 0.5F;
     y = x;
-    halfX = x * 0.5f;
-    i = *(long*)&y;              // evil floating point bit level hacking
-    i = fuckedNumber - (i >> 1); // what the fuck?
+    i = *(long*)&y;            // evil floating point bit level hacking
+    i = 0x5f3759df - (i >> 1); // what the fuck?
     y = *(float*)&i;
-    y = y * (threeHalves - (halfX * y * y)); // 1st iteration
+    y = y * (threeHalfs - (x2 * y * y));
+    y = y * (threeHalfs - (x2 * y * y));
+    y = y * (threeHalfs - (x2 * y * y));
 
     return y;
 }

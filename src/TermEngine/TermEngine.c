@@ -20,6 +20,8 @@ FrameConstants GetFrameConstants(EngineConfig config) {
         .frustum = frustum,
         .fovRadians = config.fovRadians,
         .distanceScaling = distanceScaling,
+        .backfacesEnabled = config.showBackfaces,
+        .fillTriangles = config.wireframeMode,
     };
 
     return constants;

@@ -1,5 +1,7 @@
 #include "Vector.h"
+#include "../Math/Utilities.h"
 #include <assert.h>
+#include <stdio.h>
 
 Vector3 AddVector3(Vector3 a, Vector3 b) {
     return (Vector3) {
@@ -33,6 +35,13 @@ Vector3 CrossVector3(Vector3 a, Vector3 b) {
     };
 }
 
+Vector3 NormalizeVector3(Vector3 vec) {
+    const float rawPythagoras = (vec.x * vec.x) + (vec.y * vec.y) + (vec.z * vec.z);
+
+    const float scalar = InverseSqrt(rawPythagoras);
+    return MulVector3(vec, scalar);
+}
+
 float DotVector3(Vector3 a, Vector3 b) {
     return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
 }
@@ -62,6 +71,11 @@ Vector4 MulVector4(Vector4 vec, float scalar) {
         .z = vec.z * scalar,
         .w = vec.w * scalar,
     };
+}
+
+Vector4 NormalizeVector4(Vector4 vec) {
+    const float scalar = InverseSqrt((vec.x * vec.x) + (vec.y * vec.y) + (vec.z * vec.z) + (vec.w * vec.w));
+    return MulVector4(vec, scalar);
 }
 
 float DotVector4(Vector4 a, Vector4 b) {

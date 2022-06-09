@@ -64,7 +64,10 @@ int main(int argc, char** argv) {
         .effectiveWidth = viewWidth / MONOSPACE_ASPECT_RATIO,
         .effectiveHeight = viewHeight,
         .zFar = Z_FAR,
-        .zNear = Z_NEAR};
+        .zNear = Z_NEAR,
+        .showBackfaces = !BACKFACE_CULLING,
+        .wireframeMode = RENDER_WIRE_FRAME,
+    };
 
     // Engine Initialization
     FILE* modelFile = OpenOrDie(MODEL_SOURCE);
@@ -79,7 +82,7 @@ int main(int argc, char** argv) {
     DepthBuffer* depthBuffer = GetDepthBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
 
     Transform modelTransform = {
-        .position = (Vector3) {.x = 0, .y = 0, .z = 4},
+        .position = (Vector3) {.x = 0, .y = 0, .z = 3},
         .rotation = FromEuler((Vector3) {.x = 0, .y = 0, .z = 0}),
         .scale = (Vector3) {.x = 1, .y = 1, .z = 1},
     };
@@ -99,10 +102,8 @@ int main(int argc, char** argv) {
         ClearDepthBuffer(depthBuffer);
 
         modelTransform.rotation = MulQuaternion(
-            FromEuler((Vector3) {10, 0, 5}),
+            FromEuler((Vector3) {20, 0, 10}),
             modelTransform.rotation);
-
-        usleep(1000);
     }
 
     free(model);
