@@ -1,9 +1,5 @@
 #include "Utilities.h"
 
-float Lerp(float a, float b, float t) {
-    return (1 - t) * a + t * b;
-}
-
 float InverseSqrt(float x) {
     long i;
     float x2, y;

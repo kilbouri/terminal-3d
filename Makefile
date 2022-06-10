@@ -51,4 +51,4 @@ test: test.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o D
 	${CC} test.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o ${CFLAGS} -o test.exe
 
 clean:
-	rm -f Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o ${PROG_NAME}
+	rm -f Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o ${PROG_NAME} test.exe

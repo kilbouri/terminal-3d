@@ -9,8 +9,10 @@
 #define Max(a, b) ((a) > (b) ? (a) : (b))
 #define Min(a, b) ((a) > (b) ? (b) : (a))
 #define Abs(a) ((a) > 0 ? (a) : -(a))
+#define Clamp(val, min, max) (Max((min), Min((val), (max))))
+#define Lerp(a, b, t) ((1.0f - (t)) * (a) + (t) * (b))
+#define Approx(x, y) (Abs(x - y) <= 0.00000001f)
 
-float Lerp(float a, float b, float t);
 float InverseSqrt(float x);
 
 #endif // UTILITIES_H

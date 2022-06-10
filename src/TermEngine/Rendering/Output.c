@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <assert.h>
+
 #include "Buffer.h"
 #include "Color.h"
 

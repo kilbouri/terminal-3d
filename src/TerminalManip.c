@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <termios.h>
 
-void SetRawIO(bool enabled) {
+void SetRawInput(bool enabled) {
     static struct termios originalIn;
     static bool rawModeSet = false;
 
@@ -16,15 +16,15 @@ void SetRawIO(bool enabled) {
         modifiedIn.c_lflag &= ~(ECHO | ICANON);
         tcsetattr(STDIN_FILENO, TCSAFLUSH, &modifiedIn);
 
-        // disable line buffering in stdout
-        setvbuf(stdout, NULL, _IONBF, BUFSIZ);
-
         rawModeSet = true;
     } else if (!enabled && rawModeSet) {
         // return to original input and output modes
         tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalIn);
-        setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
     }
+}
+
+void WriteOutputBuffer(char* outputBuffer, int numBytes) {
+    fwrite(outputBuffer, numBytes, 1, stdout);
 }
 
 void SetCursorVisible(bool visible) {

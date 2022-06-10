@@ -3,6 +3,6 @@
 
 #include "Buffer.h"
 
-void Render(ColorBuffer* colorBuffer);
+unsigned long Render(ColorBuffer* colorBuffer);
 
 #endif // OUTPUT_h

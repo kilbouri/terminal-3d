@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "Buffer.h"
+#include "Color.h"
 
 void* AllocBuffer(size_t structSize, int numElements, size_t elementSize);
 
@@ -21,7 +22,7 @@ ColorBuffer* GetColorBuffer(int width, int height) {
 void ClearColorBuffer(ColorBuffer* buff) {
     int size = buff->w * buff->h;
     for (int i = 0; i < size; i++) {
-        buff->contents[i] = (Color) {0, 0, 0};
+        buff->contents[i] = COLOR_BLACK;
     }
 }
 
