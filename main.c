@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
     // Allocate required buffers
     ColorBuffer* colorBuffer = GetColorBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
     DepthBuffer* depthBuffer = GetDepthBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
-    time_t lastFrameStart, now;
+    time_t frameStart, frameEnd;
 
     // Initial model transform
     Transform modelTransform = {
@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
     // Bake constants and start render loop
     FrameConstants consts = GetFrameConstants(engineConfig);
     for (int i = 0; i < 10000; i++) { // stand-in for keyboard button to exit
-        time(&lastFrameStart);
+        time(&frameStart);
 
         FillMesh(model, modelTransform, colorBuffer, depthBuffer, consts);
         DrawPixel(colorBuffer, depthBuffer, (ScreenPoint) {.x = i % engineConfig.viewportWidth, .y = 0}, COLOR_WHITE);
@@ -97,12 +97,10 @@ int main(int argc, char** argv) {
         ClearColorBuffer(colorBuffer);
         ClearDepthBuffer(depthBuffer);
 
-        modelTransform.rotation = MulQuaternion(
-            FromEuler(ROTATION_PER_FRAME),
-            modelTransform.rotation);
+        modelTransform.rotation = MulQuaternion(FromEuler(ROTATION_PER_FRAME), modelTransform.rotation);
 
-        time(&now);
-        const long elapsedMilli = MilliElapsed(now, lastFrameStart);
+        time(&frameEnd);
+        const long elapsedMilli = MilliElapsed(frameEnd, frameStart);
         const long remainingInFrameCycle = (1000 / MAX_FPS) - elapsedMilli;
 
         if (remainingInFrameCycle > 0) {
@@ -117,7 +115,10 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-void ExitHandler() { SetRawInput(false); }
+void ExitHandler() {
+    SetRawInput(false);
+    SetCursorVisible(true);
+}
 
 void SigIntHandler(int sigNum) {
     ExitHandler();
