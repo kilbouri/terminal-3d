@@ -26,14 +26,13 @@ void SetRawInput(bool enabled) {
     }
 }
 
-void WriteOutputBuffer(char* outputBuffer, int numBytes) {
-    fwrite(outputBuffer, numBytes, 1, stdout);
-}
-
 void SetCursorVisible(bool visible) {
     printf("%s", visible ? SHOW_CURSOR : HIDE_CURSOR);
 }
 
+// Does the same thing as SetCursorVisible, but uses `write` instead of `printf`
+// to skip any buffering. Intended to be used only in cases where unbuffered output
+// MUST be used, such as an exit handler.
 void SetCursorVisibleImm(bool visible) {
     write(
         STDOUT_FILENO,

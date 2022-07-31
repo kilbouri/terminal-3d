@@ -1,18 +1,16 @@
 #include "Utilities.h"
 
 float InverseSqrt(float x) {
-    long i;
-    float x2, y;
-    const float threeHalfs = 1.5F;
+    union {
+        float f;
+        long i;
+    } convert;
 
-    x2 = x * 0.5F;
-    y = x;
-    i = *(long*)&y;            // evil floating point bit level hacking
-    i = 0x5f3759df - (i >> 1); // what the fuck?
-    y = *(float*)&i;
-    y = y * (threeHalfs - (x2 * y * y));
-    y = y * (threeHalfs - (x2 * y * y));
-    y = y * (threeHalfs - (x2 * y * y));
+    float halfX = 0.5f * x;
 
-    return y;
+    convert.f = x;
+    convert.i = 0x5f3759df - (convert.i >> 1);
+    convert.f = convert.f * (1.5f - (halfX * convert.f * convert.f));
+
+    return convert.f;
 }
