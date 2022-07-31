@@ -10,13 +10,13 @@ typedef struct {
 } Vector4;
 
 #define ZerosVector3 \
-    (Vector3) { 0, 0, 0 }
+    { 0, 0, 0 }
 #define OnesVector3 \
-    (Vector3) { 1, 1, 1 }
+    { 1, 1, 1 }
 #define ZerosVector4 \
-    (Vector4) { 0, 0, 0, 0 }
+    { 0, 0, 0, 0 }
 #define OnesVector4 \
-    (Vector4) { 1, 1, 1, 1 }
+    { 1, 1, 1, 1 }
 
 Vector3 AddVector3(Vector3 a, Vector3 b);
 Vector3 SubVector3(Vector3 a, Vector3 b);

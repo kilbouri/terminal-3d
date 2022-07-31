@@ -29,7 +29,7 @@ void ExitHandler();
 void SigIntHandler(int sigNum);
 void Die(int status, const char* err);
 FILE* OpenOrDie(const char* path);
-long MilliElapsed(time_t now, time_t before);
+long MilliElapsed(clock_t now, clock_t before);
 
 int main(int argc, char** argv) {
     SetRawInput(true);
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
     // Allocate required buffers
     ColorBuffer* colorBuffer = GetColorBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
     DepthBuffer* depthBuffer = GetDepthBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
-    time_t frameStart, frameEnd;
+    clock_t frameStart, frameEnd;
 
     // Initial model transform
     Transform modelTransform = {
@@ -80,9 +80,8 @@ int main(int argc, char** argv) {
 
     // Bake constants and start render loop
     FrameConstants consts = GetFrameConstants(engineConfig);
-    for (int i = 0; i < 10000; i++) { // stand-in for keyboard button to exit
-        time(&frameStart);
 
+    for (int i = 0; i < 1000; i++) { // stand-in for keyboard button to exit
         FillMesh(model, modelTransform, colorBuffer, depthBuffer, consts);
         DrawPixel(colorBuffer, depthBuffer, (ScreenPoint) {.x = i % engineConfig.viewportWidth, .y = 0}, COLOR_WHITE);
 
@@ -98,14 +97,6 @@ int main(int argc, char** argv) {
         ClearDepthBuffer(depthBuffer);
 
         modelTransform.rotation = MulQuaternion(FromEuler(ROTATION_PER_FRAME), modelTransform.rotation);
-
-        time(&frameEnd);
-        const long elapsedMilli = MilliElapsed(frameEnd, frameStart);
-        const long remainingInFrameCycle = (1000 / MAX_FPS) - elapsedMilli;
-
-        if (remainingInFrameCycle > 0) {
-            usleep(1000 * remainingInFrameCycle);
-        }
     }
 
     free(model);
@@ -140,7 +131,7 @@ void Die(int status, const char* err) {
     exit(status);
 }
 
-long MilliElapsed(time_t now, time_t before) {
+long MilliElapsed(clock_t now, clock_t before) {
     static const double inverse1kCPS = 1000.0 / CLOCKS_PER_SEC;
-    return ((double)before - now) * inverse1kCPS;
+    return ((double)now - before) * inverse1kCPS;
 }

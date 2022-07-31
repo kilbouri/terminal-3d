@@ -1,5 +1,5 @@
 PROG_NAME ?= terminal3d.exe
-CFLAGS ?= -Wall --pedantic -lm -g
+CFLAGS ?= -Wall --pedantic -lm -g -std=gnu11
 
 ${PROG_NAME}: EngineConfig.h main.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o Pipeline.o
 	${CC} main.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o Pipeline.o ${CFLAGS} -o ${PROG_NAME}
