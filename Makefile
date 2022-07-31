@@ -1,8 +1,8 @@
 PROG_NAME ?= terminal3d.exe
 CFLAGS ?= -Wall --pedantic -lm -g
 
-${PROG_NAME}: EngineConfig.h main.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o
-	${CC} main.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o ${CFLAGS} -o ${PROG_NAME}
+${PROG_NAME}: EngineConfig.h main.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o Pipeline.o
+	${CC} main.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o Pipeline.o ${CFLAGS} -o ${PROG_NAME}
 
 
 Transform.o: EngineConfig.h ./src/TermEngine/Math/Transform.c ./src/TermEngine/Math/Transform.h
@@ -46,6 +46,9 @@ TermEngine.o: EngineConfig.h ./src/TermEngine/TermEngine.c ./src/TermEngine/Term
 
 TerminalManip.o: EngineConfig.h ./src/TerminalManip.c ./src/TerminalManip.h
 	${CC} ./src/TerminalManip.c -c ${CLFAGS}
+
+Pipeline.o: EngineConfig.h ./src/TermEngine/Rendering/Pipeline.c ./src/TermEngine/Rendering/Pipeline.h
+	${CC} ./src/TermEngine/Rendering/Pipeline.c -c ${CFLAGS}
 
 test: test.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o
 	${CC} test.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o ${CFLAGS} -o test.exe

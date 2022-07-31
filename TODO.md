@@ -1,6 +1,6 @@
 # Critical
 
-[ ] Fix exit handler or whatever is causing cursor to be invisible after exit
+[x] Fix exit handler or whatever I kis causing cursor to be invisible after exit
 [ ] Decompose render pipeline into multiple steps
 [ ] Fix depth smashing issues causing pixelated edges
 [ ] Implement proper pixel-space culling using Homo screen space

@@ -14,7 +14,7 @@
 // how many horizontal characters does it take to take up the same width as the height of a character?
 #define MONOSPACE_ASPECT_RATIO 1.45
 
-#define MODEL_SOURCE "./models/gem.stl"
+#define MODEL_SOURCE "./models/kilbouri-2021.stl"
 #define INITIAL_POSTION \
     (Vector3) { .x = 0, .y = 0, .z = 1.5 }
 #define INITIAL_ROTATION \
