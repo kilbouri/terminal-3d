@@ -88,7 +88,28 @@ int main(int argc, char** argv) {
         // draw the frame output
         SetCursorVisible(false);
         CursorToHome();
-        Render(colorBuffer);
+        // Render(colorBuffer);
+        // DEBUG::PrintDepthBuffer
+        int numElements = depthBuffer->w * depthBuffer->h;
+        double normalizer = 1 / consts.frustum;
+        float max = -INFINITY;
+        float min = INFINITY;
+        for (int i = 0; i < numElements; i++) {
+            float depth = depthBuffer->contents[i];
+            if (depth == INFINITY)
+                continue;
+            max = Max(max, depth);
+            min = Min(min, depth);
+            // float depth = depthBuffer->contents[i];
+            // int brightness = Clamp(normalizer * depth, 0, 255);
+            // DrawColor((Color) {brightness, brightness, brightness});
+        }
+
+        printf("Frame Depth Max: %f                                        \n", max);
+        printf("Frame Depth Min: %f                                        \n", min);
+
+        usleep(100000);
+
         fflush(stdout);
         SetCursorVisible(true);
 

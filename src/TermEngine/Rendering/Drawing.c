@@ -32,9 +32,15 @@ void DrawPixel(ColorBuffer* colorBuffer, DepthBuffer* depthBuffer, ScreenPoint p
     if (!IsInRange(x, 0, width) || !IsInRange(y, 0, height))
         return;
 
-    // depth check
-    if (depth >= depthBuffer->contents[ToFlat(y, x, width)])
+    if (depth < 0) {
+        // don't draw if the pixel is behind the camera
         return;
+    }
+
+    if (depth >= depthBuffer->contents[ToFlat(y, x, width)]) {
+        // don't draw if behind another pixel
+        return;
+    }
 
     // ok, this pixel is visible on screen and closer than any other... draw it
     colorBuffer->contents[ToFlat(y, x, width)] = color;

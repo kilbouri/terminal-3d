@@ -50,7 +50,7 @@ ViewportSpace ToViewportSpace(DeviceSpace deviceSpace, FrameConstants constants)
     ViewportSpace result;
     result.x = (int)(0.5f * (deviceSpace.x + 1) * constants.viewportWidth);
     result.y = (int)(0.5f * (deviceSpace.y + 1) * constants.viewportHeight);
-    result.depth = deviceSpace.z;
+    result.depth = 0.5f * (deviceSpace.z + 1);
 
     return result;
 }
