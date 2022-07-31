@@ -117,7 +117,7 @@ int main(int argc, char** argv) {
 
 void ExitHandler() {
     SetRawInput(false);
-    SetCursorVisible(true);
+    SetCursorVisibleImm(true);
 }
 
 void SigIntHandler(int sigNum) {

@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <termios.h>
 
+#define SHOW_CURSOR "\033[?25h"
+#define HIDE_CURSOR "\033[?25l"
+
 void SetRawInput(bool enabled) {
     static struct termios originalIn;
     static bool rawModeSet = false;
@@ -28,7 +31,14 @@ void WriteOutputBuffer(char* outputBuffer, int numBytes) {
 }
 
 void SetCursorVisible(bool visible) {
-    printf(visible ? "\033[?25h" : "\033[?25l");
+    printf("%s", visible ? SHOW_CURSOR : HIDE_CURSOR);
+}
+
+void SetCursorVisibleImm(bool visible) {
+    write(
+        STDOUT_FILENO,
+        visible ? SHOW_CURSOR : HIDE_CURSOR,
+        visible ? sizeof(SHOW_CURSOR) : sizeof(HIDE_CURSOR));
 }
 
 void CursorToHome() {
