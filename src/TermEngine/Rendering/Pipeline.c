@@ -3,7 +3,7 @@
 
 EyeSpace ToEyeSpace(Vector3 worldSpace, Transform cameraTransform) {
     // TODO: implement this. Currently not implemented as I have no API for
-    // quaternion rotations about a non-origin point
+    // quaternion rotations and translations about a non-origin point
     return worldSpace;
 }
 
@@ -24,7 +24,7 @@ HomoClipSpace ToClipSpace(EyeSpace eyeSpace, FrameConstants constants) {
     Vector4 projectionCoordinate = {eyeSpace.x, eyeSpace.y, eyeSpace.z, 1};
     HomoClipSpace result = Vector4MulMatrix4x4(projectionCoordinate, projectionMatrix);
 
-    return result;
+    return result; // output: [x, y, z, w] where x, y, z are scaled to a frustrum, and w = z
 }
 
 DeviceSpace ToNormalDeviceSpace(HomoClipSpace clipSpace) {
@@ -43,7 +43,8 @@ DeviceSpace ToNormalDeviceSpace(HomoClipSpace clipSpace) {
         result = coordinate;
     }
 
-    return result;
+    return result; // output: [x, y, z] where x, y, z are in [-1, 1].
+                   // If any is not in range, discard = true, else false.
 }
 
 ViewportSpace ToViewportSpace(DeviceSpace deviceSpace, FrameConstants constants) {

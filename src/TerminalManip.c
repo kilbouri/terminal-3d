@@ -17,6 +17,8 @@ void SetRawInput(bool enabled) {
         struct termios modifiedIn = originalIn;
 
         modifiedIn.c_lflag &= ~(ECHO | ICANON);
+        modifiedIn.c_cc[VMIN] = 0; // makes STDIN non-blocking
+
         tcsetattr(STDIN_FILENO, TCSAFLUSH, &modifiedIn);
 
         rawModeSet = true;

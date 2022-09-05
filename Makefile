@@ -1,8 +1,8 @@
 PROG_NAME ?= terminal3d.exe
 CFLAGS ?= -Wall --pedantic -lm -g -std=gnu11
 
-${PROG_NAME}: EngineConfig.h main.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o Pipeline.o
-	${CC} main.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o Pipeline.o ${CFLAGS} -o ${PROG_NAME}
+${PROG_NAME}: EngineConfig.h main.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o TermEngine.o TerminalManip.o Logger.o Quaternion.o Pipeline.o
+	${CC} main.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o TermEngine.o TerminalManip.o Logger.o Quaternion.o Pipeline.o ${CFLAGS} -o ${PROG_NAME}
 
 
 Transform.o: EngineConfig.h ./src/TermEngine/Math/Transform.c ./src/TermEngine/Math/Transform.h
@@ -38,20 +38,17 @@ Output.o: EngineConfig.h ./src/TermEngine/Rendering/Output.c ./src/TermEngine/Re
 Projection.o: EngineConfig.h ./src/TermEngine/Rendering/Projection.c ./src/TermEngine/Rendering/Projection.h
 	${CC} ./src/TermEngine/Rendering/Projection.c -c ${CFLAGS}
 
-Debug.o: EngineConfig.h ./src/TermEngine/Debug.c ./src/TermEngine/Debug.h
-	${CC} ./src/TermEngine/Debug.c -c ${CFLAGS}
-
 TermEngine.o: EngineConfig.h ./src/TermEngine/TermEngine.c ./src/TermEngine/TermEngine.h
 	${CC} ./src/TermEngine/TermEngine.c -c ${CFLAGS}
 
 TerminalManip.o: EngineConfig.h ./src/TerminalManip.c ./src/TerminalManip.h
 	${CC} ./src/TerminalManip.c -c ${CLFAGS}
 
+Logger.o: EngineConfig.h ./src/Logger.c ./src/Logger.h
+	${CC} ./src/Logger.c -c ${CLFAGS}
+
 Pipeline.o: EngineConfig.h ./src/TermEngine/Rendering/Pipeline.c ./src/TermEngine/Rendering/Pipeline.h
 	${CC} ./src/TermEngine/Rendering/Pipeline.c -c ${CFLAGS}
 
-test: test.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o
-	${CC} test.c Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o ${CFLAGS} -o test.exe
-
 clean:
-	rm -f Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o Debug.o TermEngine.o TerminalManip.o Quaternion.o ${PROG_NAME} test.exe
+	rm -f Transform.o Utilities.o Vector.o Matrix.o Mesh.o Buffer.o Color.o Drawing.o Output.o Projection.o TermEngine.o TerminalManip.o Logger.o Quaternion.o ${PROG_NAME}

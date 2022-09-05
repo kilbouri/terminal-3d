@@ -13,6 +13,10 @@ Vector3 ReadVector3(FILE* source) {
 }
 
 Mesh* LoadMeshFromSTL(FILE* stlSource) {
+    if (stlSource == NULL) {
+        return NULL;
+    }
+
     // skip header
     fseek(stlSource, 80, SEEK_CUR);
 

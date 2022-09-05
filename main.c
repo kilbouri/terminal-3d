@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -20,16 +21,16 @@
 #include "src/TermEngine/Rendering/Projection.h"
 #include "src/TermEngine/Rendering/Output.h"
 #include "src/TermEngine/TermEngine.h"
-#include "src/TermEngine/Debug.h"
 
 // Other
 #include "src/TerminalManip.h"
+#include "src/Logger.h"
 
+bool ShouldExit();
 void ExitHandler();
 void SigIntHandler(int sigNum);
 void Die(int status, const char* err);
-FILE* OpenOrDie(const char* path);
-long MilliElapsed(clock_t now, clock_t before);
+unsigned int MilliElapsed(clock_t now, clock_t before);
 
 int main(int argc, char** argv) {
     SetRawInput(true);
@@ -40,6 +41,8 @@ int main(int argc, char** argv) {
     if (argc <= 2) {
         Die(EINVAL, "Missing one or more required arguments");
     }
+
+    Logger logger = GetLogger("terminal3d.log", LEVEL_INFO_I);
 
     int viewWidth = atoi(argv[1]);
     int viewHeight = atoi(argv[2]);
@@ -58,12 +61,15 @@ int main(int argc, char** argv) {
     };
 
     // Read model from file (die on fail)
-    FILE* modelFile = OpenOrDie(MODEL_SOURCE);
+    FILE* modelFile = fopen(MODEL_SOURCE, "r");
     Mesh* model = LoadMeshFromSTL(modelFile);
-    fclose(modelFile);
 
     if (model == NULL) {
-        Die(ENOENT, "Could not load model.");
+        LogError(logger, "Failed to open " MODEL_SOURCE ". Does the file exist?");
+        exit(ENOENT);
+    } else {
+        LogInfo(logger, "Succesfully opened " MODEL_SOURCE " as STL model");
+        fclose(modelFile);
     }
 
     // Allocate required buffers
@@ -81,50 +87,54 @@ int main(int argc, char** argv) {
     // Bake constants and start render loop
     FrameConstants consts = GetFrameConstants(engineConfig);
 
-    for (int i = 0; i < 1000; i++) { // stand-in for keyboard button to exit
+    for (int i = 0; !ShouldExit(); i++) {
+        frameStart = clock();
+
         FillMesh(model, modelTransform, colorBuffer, depthBuffer, consts);
         DrawPixel(colorBuffer, depthBuffer, (ScreenPoint) {.x = i % engineConfig.viewportWidth, .y = 0}, COLOR_WHITE);
 
-        // draw the frame output
         SetCursorVisible(false);
+
+        Render(colorBuffer);
         CursorToHome();
-        // Render(colorBuffer);
-        // DEBUG::PrintDepthBuffer
-        int numElements = depthBuffer->w * depthBuffer->h;
-        double normalizer = 1 / consts.frustum;
-        float max = -INFINITY;
-        float min = INFINITY;
-        for (int i = 0; i < numElements; i++) {
-            float depth = depthBuffer->contents[i];
-            if (depth == INFINITY)
-                continue;
-            max = Max(max, depth);
-            min = Min(min, depth);
-            // float depth = depthBuffer->contents[i];
-            // int brightness = Clamp(normalizer * depth, 0, 255);
-            // DrawColor((Color) {brightness, brightness, brightness});
-        }
-
-        printf("Frame Depth Max: %f                                        \n", max);
-        printf("Frame Depth Min: %f                                        \n", min);
-
-        usleep(100000);
 
         fflush(stdout);
         SetCursorVisible(true);
+
+        modelTransform.rotation = MulQuaternion(modelTransform.rotation, FromEuler(ROTATION_PER_FRAME));
 
         // reset buffers for next frame
         ClearColorBuffer(colorBuffer);
         ClearDepthBuffer(depthBuffer);
 
         modelTransform.rotation = MulQuaternion(FromEuler(ROTATION_PER_FRAME), modelTransform.rotation);
+
+        frameEnd = clock();
+
+        unsigned int elapsed = MilliElapsed(frameEnd, frameStart);
+        unsigned int targetElapsed = 1000 / MAX_FPS;
+
+        int milliSleep = targetElapsed - elapsed;
+        if (milliSleep > 0) {
+            usleep(1000 * milliSleep);
+        }
     }
 
+    LogInfo(logger, "Exit key pressed, exiting.");
+
     free(model);
+    CloseLogger(logger);
     FreeColorBuffer(colorBuffer);
     FreeDepthBuffer(depthBuffer);
     ExitHandler();
     return 0;
+}
+
+bool ShouldExit() {
+    char charBuf;
+    read(STDIN_FILENO, &charBuf, sizeof(char));
+
+    return charBuf == 'q' || charBuf == 'Q';
 }
 
 void ExitHandler() {
@@ -138,21 +148,13 @@ void SigIntHandler(int sigNum) {
     raise(sigNum);
 }
 
-FILE* OpenOrDie(const char* path) {
-    FILE* file = fopen(path, "r");
-    if (file == NULL)
-        Die(1, "Failed to open model source file.");
-
-    return file;
-}
-
 void Die(int status, const char* err) {
     errno = status;
     perror(err);
     exit(status);
 }
 
-long MilliElapsed(clock_t now, clock_t before) {
+unsigned int MilliElapsed(clock_t now, clock_t before) {
     static const double inverse1kCPS = 1000.0 / CLOCKS_PER_SEC;
     return ((double)now - before) * inverse1kCPS;
 }

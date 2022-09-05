@@ -20,10 +20,10 @@ ScreenPoint Project(Vector3 point, Transform cameraTransform, FrameConstants con
     HomoClipSpace clipSpace = ToClipSpace(eyeSpace, constants);
     DeviceSpace deviceSpace = ToNormalDeviceSpace(clipSpace);
 
-    if (deviceSpace.z < -1 || deviceSpace.z > 1) {
-        *discard = true;
-        return (ScreenPoint) {/* Undefined */};
-    }
+    bool validX = -1 <= deviceSpace.x && deviceSpace.x <= 1;
+    bool validY = -1 <= deviceSpace.y && deviceSpace.y <= 1;
+    bool validZ = -1 <= deviceSpace.z && deviceSpace.z <= 1;
+    *discard = !validX || !validY || !validZ;
 
     ViewportSpace viewSpace = ToViewportSpace(deviceSpace, constants);
     return viewSpace;
@@ -34,6 +34,7 @@ void DrawInternal(
     ColorBuffer* colorBuffer, DepthBuffer* depthBuffer,
     FrameConstants constants,
     void (*drawCallback)(ColorBuffer*, DepthBuffer*, ScreenPoint, ScreenPoint, ScreenPoint, Color)) {
+
     const static Transform camera = {
         .position = ZerosVector3,
         .rotation = IdentityQuaternion,
@@ -59,9 +60,7 @@ void DrawInternal(
             continue;
         }
 
-        bool shouldDiscard1;
-        bool shouldDiscard2;
-        bool shouldDiscard3;
+        bool shouldDiscard1, shouldDiscard2, shouldDiscard3;
         ScreenPoint v1 = Project(v1Transformed, camera, constants, &shouldDiscard1);
         ScreenPoint v2 = Project(v2Transformed, camera, constants, &shouldDiscard2);
         ScreenPoint v3 = Project(v3Transformed, camera, constants, &shouldDiscard3);
