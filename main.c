@@ -12,19 +12,12 @@
 // Config
 #include "EngineConfig.h"
 
-// TermEngine
-#include "src/TermEngine/Math/Vector.h"
-#include "src/TermEngine/Math/Transform.h"
-#include "src/TermEngine/Mesh/Mesh.h"
-#include "src/TermEngine/Rendering/Drawing.h"
-#include "src/TermEngine/Rendering/Buffer.h"
-#include "src/TermEngine/Rendering/Projection.h"
-#include "src/TermEngine/Rendering/Output.h"
-#include "src/TermEngine/TermEngine.h"
+// Libraries
+#include "lib/Engine/Engine.h"
+#include "lib/Logger/Logger.h"
 
 // Other
 #include "src/TerminalManip.h"
-#include "src/Logger.h"
 
 bool ShouldExit();
 void ExitHandler();
