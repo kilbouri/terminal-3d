@@ -1,0 +1,17 @@
+{
+    "name": "Debian",
+    "image": "mcr.microsoft.com/devcontainers/base:bullseye",
+    "features": {
+        "ghcr.io/jungaretti/features/make:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "bierner.markdown-preview-github-styles",
+                "amih90.to"
+            ]
+        }
+    },
+    "postAttachCommand": "zsh"
+}
