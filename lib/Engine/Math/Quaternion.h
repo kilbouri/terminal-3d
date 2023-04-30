@@ -6,7 +6,7 @@
 typedef Vector4 Quaternion;
 
 #define IdentityQuaternion \
-    { 0, 0, 0, 1 }
+    (Quaternion) { .x = 0, .y = 0, .z = 0, .w = 1 }
 
 Quaternion FromEuler(Vector3 eulerDegrees);
 Quaternion MulQuaternion(Quaternion a, Quaternion b);

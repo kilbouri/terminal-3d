@@ -14,7 +14,7 @@ typedef struct {
     float effectiveAspectRatio;
     float zNear, zFar, frustum;
     float fovRadians, distanceScaling;
-    bool backfaceCulling, fillTriangles;
+    bool backfaceCulling;
 } FrameConstants;
 
 FrameConstants GetFrameConstants(EngineConfig config);

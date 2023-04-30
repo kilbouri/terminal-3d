@@ -72,12 +72,25 @@ int main(int argc, char** argv) {
     // Initial model transform
     Transform modelTransform = {
         .position = INITIAL_POSTION,
-        .rotation = FromEuler(INITIAL_ROTATION),
+        .rotation = FromEuler(INITIAL_ROTATION_DEG),
         .scale = INITIAL_SCALE,
     };
 
     // Bake constants and start render loop
     FrameConstants frameConstants = GetFrameConstants(engineConfig);
+
+    // Optionally recomite normals
+    if (RECOMPUTE_NORMALS) {
+        for (int triangleIndex = 0; triangleIndex < model->triangleCount; triangleIndex++) {
+            Triangle* triangle = &(model->triangles[triangleIndex]);
+
+            const Vector3 v1 = triangle->v1;
+            const Vector3 v2 = triangle->v2;
+            const Vector3 v3 = triangle->v3;
+
+            triangle->normal = CrossVector3(SubVector3(v3, v1), SubVector3(v2, v1));
+        }
+    }
 
     for (int i = 0; !ShouldExit(); i++) {
         frameStart = clock();
@@ -85,30 +98,29 @@ int main(int argc, char** argv) {
         int trianglesDrawn = 0;
         int trianglesCulled = 0;
 
-        const float minBrightness = 0.25;
-        const float inverseTriangleCount = (1.0f - minBrightness) / model->triangleCount;
-
         rasterStart = clock();
         for (int triangleIndex = 0; triangleIndex < model->triangleCount; triangleIndex++) {
             Vector3 v1 = ApplyTransform(model->triangles[triangleIndex].v1, modelTransform);
             Vector3 v2 = ApplyTransform(model->triangles[triangleIndex].v2, modelTransform);
             Vector3 v3 = ApplyTransform(model->triangles[triangleIndex].v3, modelTransform);
 
-            EyeSpace v1Eye = ToEyeSpace(v1, IdentityTransform);
-            EyeSpace v2Eye = ToEyeSpace(v2, IdentityTransform);
-            EyeSpace v3Eye = ToEyeSpace(v3, IdentityTransform);
+            // Apply only rotation to the normal
+            Vector3 normal = Vector3MulQuaternion(model->triangles[triangleIndex].normal, modelTransform.rotation);
 
             // Backface culling disabled in wireframe mode (cuz it looks odd)
             if (!engineConfig.wireframeMode && engineConfig.backfaceCulling) {
                 // We don't normalize here because we only care about sign of dotproduct, not magnitude.
-                Vector3 normal = CrossVector3(SubVector3(v3Eye, v1Eye), SubVector3(v2Eye, v1Eye));
-                float dotProduct = DotVector3(normal, v1Eye);
+                float dotProduct = DotVector3(normal, SubVector3(v1, ZerosVector3));
 
-                if (dotProduct <= 0) {
+                if (dotProduct >= 0) {
                     trianglesCulled += 1;
                     continue;
                 }
             }
+
+            EyeSpace v1Eye = ToEyeSpace(v1, IdentityTransform);
+            EyeSpace v2Eye = ToEyeSpace(v2, IdentityTransform);
+            EyeSpace v3Eye = ToEyeSpace(v3, IdentityTransform);
 
             HomoClipSpace v1Clip = ToClipSpace(v1Eye, frameConstants);
             HomoClipSpace v2Clip = ToClipSpace(v2Eye, frameConstants);
@@ -118,6 +130,13 @@ int main(int argc, char** argv) {
             DeviceSpace v2Device = ToNormalDeviceSpace(v2Clip);
             DeviceSpace v3Device = ToNormalDeviceSpace(v3Clip);
 
+            if (!(-1 <= v1Device.x && v1Device.x <= 1) && !(-1 <= v1Device.y && v1Device.y <= 1) &&
+                !(-1 <= v2Device.x && v2Device.x <= 1) && !(-1 <= v2Device.y && v2Device.y <= 1) &&
+                !(-1 <= v3Device.x && v3Device.x <= 1) && !(-1 <= v3Device.y && v3Device.y <= 1)) {
+                trianglesCulled += 1;
+                continue;
+            }
+
             ViewportSpace v1View = ToViewportSpace(v1Device, frameConstants);
             ViewportSpace v2View = ToViewportSpace(v2Device, frameConstants);
             ViewportSpace v3View = ToViewportSpace(v3Device, frameConstants);
@@ -126,12 +145,26 @@ int main(int argc, char** argv) {
             ScreenPoint v2Point = (ScreenPoint) {.x = v2View.x, .y = v2View.y, .depth = v2View.depth};
             ScreenPoint v3Point = (ScreenPoint) {.x = v3View.x, .y = v3View.y, .depth = v3View.depth};
 
-            float brightness = ((inverseTriangleCount * triangleIndex) + minBrightness) * COLOR_CHANNEL_MAX;
-            Color triangleColor = (Color) {
-                .r = brightness,
-                .g = brightness,
-                .b = brightness,
-            };
+            Color triangleColor;
+
+            if (TRIANGLE_COLOR_MODE == TCM_INDEX) {
+                const float minBrightness = 0.25;
+                const float inverseTriangleCount = (1.0f - minBrightness) / model->triangleCount;
+                const float brightness = (inverseTriangleCount * triangleIndex) + minBrightness;
+                triangleColor = (Color) {
+                    .r = brightness * COLOR_CHANNEL_MAX,
+                    .g = brightness * COLOR_CHANNEL_MAX,
+                    .b = brightness * COLOR_CHANNEL_MAX,
+                };
+            } else if (TRIANGLE_COLOR_MODE == TCM_NORMAL) {
+                triangleColor = (Color) {
+                    .r = Clamp((unsigned int)(normal.x * COLOR_CHANNEL_MAX), COLOR_CHANNEL_MIN, COLOR_CHANNEL_MAX),
+                    .g = Clamp((unsigned int)(normal.y * COLOR_CHANNEL_MAX), COLOR_CHANNEL_MIN, COLOR_CHANNEL_MAX),
+                    .b = Clamp((unsigned int)(normal.z * COLOR_CHANNEL_MAX), COLOR_CHANNEL_MIN, COLOR_CHANNEL_MAX),
+                };
+            } else if (TRIANGLE_COLOR_MODE == TCM_SHADED) {
+                triangleColor = COLOR_WHITE;
+            }
 
             // If we're here, the face was not culled and should be drawn
             trianglesDrawn += 1;
@@ -168,6 +201,7 @@ int main(int argc, char** argv) {
         unsigned int outputTime = MilliElapsed(outputEnd, outputStart);
         int milliSleep = targetElapsed - frameTotal;
 
+        LogInfo(logger, "Resolution: %d x %d", engineConfig.viewportWidth, engineConfig.viewportHeight);
         LogInfo(logger, "Total frame time: %u ms (of %u for FPS cap)", frameTotal, targetElapsed);
         LogInfo(logger, "\tRaster - %u ms", rasterTime);
         LogInfo(logger, "\tOutput - %u ms", outputTime);

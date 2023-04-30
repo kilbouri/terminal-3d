@@ -21,7 +21,6 @@ FrameConstants GetFrameConstants(EngineConfig config) {
         .fovRadians = config.fovRadians,
         .distanceScaling = distanceScaling,
         .backfaceCulling = config.backfaceCulling,
-        .fillTriangles = config.wireframeMode,
     };
 
     return constants;

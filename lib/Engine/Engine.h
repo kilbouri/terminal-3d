@@ -15,6 +15,5 @@
 #include "Rendering/Buffer.h"
 #include "Rendering/Drawing.h"
 #include "Rendering/SpaceConversion.h"
-#include "Rendering/Projection.h"
 
 #endif // ENGINE_H
