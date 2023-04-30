@@ -82,11 +82,7 @@ int main(int argc, char** argv) {
     for (int i = 0; !ShouldExit(); i++) {
         frameStart = clock();
 
-        if (engineConfig.wireframeMode) {
-            DrawMesh(model, modelTransform, colorBuffer, depthBuffer, consts);
-        } else {
-            FillMesh(model, modelTransform, colorBuffer, depthBuffer, consts);
-        }
+        FillMesh(model, modelTransform, colorBuffer, depthBuffer, consts);
         DrawPixel(colorBuffer, depthBuffer, (ScreenPoint) {.x = i % engineConfig.viewportWidth, .y = 0}, COLOR_WHITE);
 
         SetCursorVisible(false);

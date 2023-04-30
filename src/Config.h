@@ -4,10 +4,10 @@
 #include <stdbool.h>
 #include <math.h>
 
-#define MAX_FPS 24
+#define MAX_FPS 60
 #define TRUE_COLOR_SUPPORT true
-#define RENDER_WIRE_FRAME true
-#define BACKFACE_CULLING false
+#define RENDER_WIRE_FRAME false
+#define BACKFACE_CULLING true
 #define FOV_DEGREES 80
 #define Z_FAR 100
 #define Z_NEAR 0.01
