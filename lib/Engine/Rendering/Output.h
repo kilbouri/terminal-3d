@@ -4,5 +4,6 @@
 #include "../Engine.h"
 
 void Render(ColorBuffer* colorBuffer);
+void RenderDepth(DepthBuffer* colorBuffer, float zNear, float zFar);
 
 #endif // OUTPUT_h

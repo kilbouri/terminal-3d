@@ -5,11 +5,14 @@ typedef struct {
     unsigned char r, g, b;
 } Color;
 
-#define COLOR_WHITE \
-    (Color) { 255, 255, 255 }
-#define COLOR_BLACK \
-    (Color) { 0, 0, 0 }
+#define COLOR_CHANNEL_MAX 255
+#define COLOR_CHANNEL_MIN 0
 
-void DrawColor(Color c);
+#define COLOR_WHITE \
+    (Color) { COLOR_CHANNEL_MAX, COLOR_CHANNEL_MAX, COLOR_CHANNEL_MAX }
+#define COLOR_BLACK \
+    (Color) { COLOR_CHANNEL_MIN, COLOR_CHANNEL_MIN, COLOR_CHANNEL_MIN }
+
+void WriteColor(Color c);
 
 #endif // COLOR_H

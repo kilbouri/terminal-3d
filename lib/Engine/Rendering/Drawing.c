@@ -268,6 +268,7 @@ void FillTriangle(ColorBuffer* colorBuffer, DepthBuffer* depthBuffer, ScreenPoin
         
         if (y == y2) break;
     }
+
 secondHalf:
     deltaX1 = (int)(x3 - x2);
     if (deltaX1 < 0) {
@@ -318,6 +319,7 @@ secondHalf:
 
             if (i < deltaX1) i++;
         }
+        
     upperHalfOfLowerHalf:
         while (t2x != x3) {
             e2 += deltaY2;

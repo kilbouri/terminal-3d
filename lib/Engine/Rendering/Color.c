@@ -2,7 +2,7 @@
 
 #include "../Engine.h"
 
-void DrawColor(Color c) {
+void WriteColor(Color c) {
     const unsigned char r = Clamp(c.r, 0, 255);
     const unsigned char g = Clamp(c.g, 0, 255);
     const unsigned char b = Clamp(c.b, 0, 255);

@@ -87,7 +87,8 @@ int main(int argc, char** argv) {
 
         SetCursorVisible(false);
 
-        Render(colorBuffer);
+        // Render(colorBuffer);
+        RenderDepth(depthBuffer, engineConfig.zNear, engineConfig.zFar);
         CursorToHome();
 
         fflush(stdout);

@@ -21,9 +21,7 @@ HomoClipSpace ToClipSpace(EyeSpace eyeSpace, FrameConstants constants) {
     }; // clang-format on
 
     Vector4 projectionCoordinate = {eyeSpace.x, eyeSpace.y, eyeSpace.z, 1};
-    HomoClipSpace result = Vector4MulMatrix4x4(projectionCoordinate, projectionMatrix);
-
-    return result; // output: [x, y, z, w] where x, y, z are scaled to a frustrum, and w = z
+    return Vector4MulMatrix4x4(projectionCoordinate, projectionMatrix);
 }
 
 DeviceSpace ToNormalDeviceSpace(HomoClipSpace clipSpace) {
@@ -34,7 +32,8 @@ DeviceSpace ToNormalDeviceSpace(HomoClipSpace clipSpace) {
     Vector3 coordinate = (Vector3) {x, y, z};
 
     DeviceSpace result;
-    if (clipSpace.w != 0) {
+
+    if (!Approx(clipSpace.w, 0)) {
         float inverseZ = 1.0f / clipSpace.w;
         result = MulVector3(coordinate, inverseZ);
     } else {
@@ -43,14 +42,12 @@ DeviceSpace ToNormalDeviceSpace(HomoClipSpace clipSpace) {
     }
 
     return result; // output: [x, y, z] where x, y, z are in [-1, 1].
-                   // If any is not in range, discard = true, else false.
 }
 
 ViewportSpace ToViewportSpace(DeviceSpace deviceSpace, FrameConstants constants) {
-    ViewportSpace result;
-    result.x = (int)(0.5f * (deviceSpace.x + 1) * constants.viewportWidth);
-    result.y = (int)(0.5f * (deviceSpace.y + 1) * constants.viewportHeight);
-    result.depth = 0.5f * (deviceSpace.z + 1);
-
-    return result;
+    return (ViewportSpace) {
+        .x = (int)(0.5f * (deviceSpace.x + 1) * constants.viewportWidth),
+        .y = (int)(0.5f * (deviceSpace.y + 1) * constants.viewportHeight),
+        .depth = 0.5f * (deviceSpace.z + 1),
+    };
 }

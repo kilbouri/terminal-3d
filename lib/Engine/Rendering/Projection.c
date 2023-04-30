@@ -17,7 +17,10 @@ ScreenPoint Project(Vector3 point, Transform cameraTransform, FrameConstants con
     bool validX = -1 <= deviceSpace.x && deviceSpace.x <= 1;
     bool validY = -1 <= deviceSpace.y && deviceSpace.y <= 1;
     bool validZ = -1 <= deviceSpace.z && deviceSpace.z <= 1;
-    *discard = !validX || !validY || !validZ;
+
+    if (discard != NULL) {
+        *discard = !validX || !validY || !validZ;
+    }
 
     ViewportSpace viewSpace = ToViewportSpace(deviceSpace, constants);
     return viewSpace;
