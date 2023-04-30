@@ -10,7 +10,14 @@
 // ==========
 // OPERATIONS
 // ==========
-Logger GetLogger(char* logTarget, LogLevel minLevel) {
+Logger GetLogger(FILE* logTarget, LogLevel minLevel) {
+    return (Logger) {
+        .outTarget = logTarget,
+        .logLevel = minLevel,
+    };
+}
+
+Logger GetFileLogger(char* logTarget, LogLevel minLevel) {
     FILE* target = fopen(logTarget, "w");
     if (target == NULL) {
         errno = 1;
@@ -18,10 +25,7 @@ Logger GetLogger(char* logTarget, LogLevel minLevel) {
         exit(1);
     }
 
-    return (Logger) {
-        .outTarget = target,
-        .logLevel = minLevel,
-    };
+    return GetLogger(target, minLevel);
 }
 
 void CloseLogger(Logger logger) {

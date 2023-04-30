@@ -7,12 +7,12 @@
 
 typedef struct {
     Vector3 position;
-    Vector3 scale;
     Quaternion rotation;
+    Vector3 scale;
 } __attribute__((aligned(16))) Transform; // align 16 for SSE
 
 #define IdentityTransform \
-    { ZerosVector3, IdentityQuaternion, OnesVector3 }
+    (Transform) { .position = ZerosVector3, .rotation = IdentityQuaternion, .scale = OnesVector3 }
 
 Vector3 ApplyTransform(Vector3 vec, Transform transform);
 

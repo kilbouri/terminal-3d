@@ -29,7 +29,8 @@ typedef struct {
 // ==========
 // OPERATIONS
 // ==========
-Logger GetLogger(char* logTarget, LogLevel minLevel);
+Logger GetLogger(FILE* logTarget, LogLevel minLevel);
+Logger GetFileLogger(char* logTarget, LogLevel minLevel);
 void CloseLogger(Logger logger);
 void LogDebug(Logger logger, const char* __restrict__ __format, ...);
 void LogInfo(Logger logger, const char* __restrict__ __format, ...);
