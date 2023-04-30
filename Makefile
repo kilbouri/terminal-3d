@@ -1,14 +1,16 @@
 # THIS FILE IS DESIGNED FOR GNU MAKE
 
-PROG_NAME ?= terminal3d.exe
+PROG_NAME ?= terminal3d
 CFLAGS ?= -Wall --pedantic -lm -std=gnu11
 
-objects = main.o src/TerminalManip.o
+objects = src/main.o src/TerminalManip.o
+libraries = lib/Logger/Logger.a lib/Engine/Engine.a
+config = src/Config.h
 
 all: $(PROG_NAME)
 
-$(PROG_NAME): $(objects) lib/Logger/Logger.a lib/Engine/Engine.a
-	$(CC) $^ -o $(PROG_NAME) $(CFLAGS) 
+$(PROG_NAME): $(config) $(objects) $(libraries)
+	$(CC) $(objects) $(libraries) -o $(PROG_NAME) $(CFLAGS) 
 
 lib/Engine/Engine.a: FORCE
 	make --no-print-directory -C lib/Engine

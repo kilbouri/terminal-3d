@@ -2,17 +2,18 @@
 #define ENGINE_CONFIG_H
 
 #include <stdbool.h>
+#include <math.h>
 
-#define MAX_FPS 6
+#define MAX_FPS 24
 #define TRUE_COLOR_SUPPORT true
-#define RENDER_WIRE_FRAME false
-#define BACKFACE_CULLING true
+#define RENDER_WIRE_FRAME true
+#define BACKFACE_CULLING false
 #define FOV_DEGREES 80
 #define Z_FAR 100
 #define Z_NEAR 0.01
 
 // how many horizontal characters does it take to take up the same width as the height of a character?
-#define MONOSPACE_ASPECT_RATIO 1.45
+#define MONOSPACE_ASPECT_RATIO 2
 
 #define MODEL_SOURCE "./models/cube.stl"
 #define INITIAL_POSTION \

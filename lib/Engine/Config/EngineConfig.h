@@ -5,7 +5,7 @@ typedef struct {
     float effectiveWidth, effectiveHeight;
     float fovRadians;
     float zNear, zFar;
-    bool showBackfaces, wireframeMode;
+    bool backfaceCulling, wireframeMode;
 } EngineConfig;
 
 typedef struct {
@@ -14,7 +14,7 @@ typedef struct {
     float effectiveAspectRatio;
     float zNear, zFar, frustum;
     float fovRadians, distanceScaling;
-    bool backfacesEnabled, fillTriangles;
+    bool backfaceCulling, fillTriangles;
 } FrameConstants;
 
 FrameConstants GetFrameConstants(EngineConfig config);

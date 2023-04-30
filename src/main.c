@@ -10,14 +10,14 @@
 #include <time.h>
 
 // Config
-#include "EngineConfig.h"
+#include "Config.h"
 
 // Libraries
-#include "lib/Engine/Engine.h"
-#include "lib/Logger/Logger.h"
+#include "../lib/Engine/Engine.h"
+#include "../lib/Logger/Logger.h"
 
 // Other
-#include "src/TerminalManip.h"
+#include "TerminalManip.h"
 
 bool ShouldExit();
 void ExitHandler();
@@ -42,14 +42,13 @@ int main(int argc, char** argv) {
 
     EngineConfig engineConfig = {
         .fovRadians = DEG2RAD(FOV_DEGREES),
-        .showBackfaces = RENDER_WIRE_FRAME,
         .viewportWidth = viewWidth,
         .viewportHeight = viewHeight,
         .effectiveWidth = viewWidth / MONOSPACE_ASPECT_RATIO,
         .effectiveHeight = viewHeight,
         .zFar = Z_FAR,
         .zNear = Z_NEAR,
-        .showBackfaces = !BACKFACE_CULLING,
+        .backfaceCulling = BACKFACE_CULLING,
         .wireframeMode = RENDER_WIRE_FRAME,
     };
 
@@ -83,7 +82,11 @@ int main(int argc, char** argv) {
     for (int i = 0; !ShouldExit(); i++) {
         frameStart = clock();
 
-        FillMesh(model, modelTransform, colorBuffer, depthBuffer, consts);
+        if (engineConfig.wireframeMode) {
+            DrawMesh(model, modelTransform, colorBuffer, depthBuffer, consts);
+        } else {
+            FillMesh(model, modelTransform, colorBuffer, depthBuffer, consts);
+        }
         DrawPixel(colorBuffer, depthBuffer, (ScreenPoint) {.x = i % engineConfig.viewportWidth, .y = 0}, COLOR_WHITE);
 
         SetCursorVisible(false);

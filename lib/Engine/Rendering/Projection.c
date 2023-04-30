@@ -50,7 +50,7 @@ void DrawInternal(
         };
 
         float dotProduct;
-        if (!constants.backfacesEnabled && ShouldCullTriangle(transformedTriangle, &dotProduct)) {
+        if (constants.backfaceCulling && ShouldCullTriangle(transformedTriangle, &dotProduct)) {
             continue;
         }
 
