@@ -7,7 +7,7 @@ objects = \
 		Mesh/Mesh.o \
 		Config/EngineConfig.o \
 		Math/Matrix.o Math/Quaternion.o Math/Transform.o Math/Utilities.o Math/Vector.o \
-		Rendering/Buffer.o Rendering/Color.o Rendering/Drawing.o Rendering/Output.o Rendering/Pipeline.o Rendering/Projection.o
+		Rendering/Buffer.o Rendering/Color.o Rendering/Drawing.o Rendering/SpaceConversion.o Rendering/Projection.o
 
 # Creates a static library archive from each of the component object files
 $(libraryName): $(objects)

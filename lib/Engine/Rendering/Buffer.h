@@ -21,4 +21,7 @@ ColorBuffer* GetColorBuffer(int width, int height);
 void ClearColorBuffer(ColorBuffer* buff);
 void FreeColorBuffer(ColorBuffer* buff);
 
+void Render(ColorBuffer* colorBuffer);
+void RenderDepth(DepthBuffer* colorBuffer, float zNear, float zFar);
+
 #endif // BUFFER_H

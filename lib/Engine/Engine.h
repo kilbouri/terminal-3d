@@ -14,8 +14,7 @@
 #include "Rendering/Color.h"
 #include "Rendering/Buffer.h"
 #include "Rendering/Drawing.h"
-#include "Rendering/Output.h"
-#include "Rendering/Pipeline.h"
+#include "Rendering/SpaceConversion.h"
 #include "Rendering/Projection.h"
 
 #endif // ENGINE_H
