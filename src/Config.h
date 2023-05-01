@@ -7,7 +7,6 @@
 // BEHAVIOUR CONFIG
 #define MAX_FPS 24
 #define RECOMPUTE_NORMALS false
-#define TRUE_COLOR_SUPPORT true
 #define MONOSPACE_ASPECT_RATIO 2
 
 // PROJECTION CONFIG
@@ -27,7 +26,7 @@
 #define SM_INDEX 1
 #define INDEX_AMBIENT_LIGHT 0.125 // used only for Index-based shading
 
-// Traingle color calculated using Blinn-Phong reflection
+// Traingle color calculated using diffuse Phong reflection
 #define SM_PHONG_SHADING 2
 #define PHONG_AMBIENT_LIGHT 0.125
 #define PHONG_STRENGTH 0.6
