@@ -1,10 +1,10 @@
 # terminal-3d
 
-A hobby project to create a fairly decent realtime 3D renderer in the terminal. A few "goals":
+A hobby project to create a fairly decent realtime 3D renderer in the terminal. A few goals:
 
 1. All C source code is mine (or contributed by others). This means no libraries like curses or OpenGL.
     - This is one of the main reasons the display medium is a terminal - windows are hecking complicated.
-2. Just because the output method is slow, doesn't mean the internal rasterizer should or can be.
+2. Just because the output method is slow, doesn't mean the underlying renderer should or can be.
 3. Portability isn't too important, though it is nice.
     - This means all code is written to work on GNU/Linux, and *likely* works on Mac too.
     - No consideration for Windows whatsoever. If you're on Windows, use Docker or WSL.
@@ -48,7 +48,6 @@ Run: `terminal3d <width> <height>`. For example, `terminal3d 64 32` to render 64
 **Press `Q` to exit**.
 
 Currently all configuration (other than display resolution) is defined in `src/Config.h`. Its a lazy-man's config file.
-
 
 ## Architecture Notes
 
