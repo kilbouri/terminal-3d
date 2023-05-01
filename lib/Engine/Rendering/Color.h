@@ -13,6 +13,8 @@ typedef struct {
 #define COLOR_BLACK \
     (Color) { COLOR_CHANNEL_MIN, COLOR_CHANNEL_MIN, COLOR_CHANNEL_MIN }
 
+Color ColorFromHSV(float hue, float sat, float val);
+Color ColorFromRGB(float red, float green, float blue);
 void WriteColor(Color c);
 
 #endif // COLOR_H

@@ -11,7 +11,7 @@
 #define Abs(a) ((a) > 0 ? (a) : -(a))
 #define Clamp(val, min, max) (Max((min), Min((val), (max))))
 #define Lerp(a, b, t) ((1.0f - (t)) * (a) + (t) * (b))
-#define Approx(x, y) (Abs(x - y) <= 0.00000001f)
+#define Approx(x, y) (Abs(x - y) <= 0.0000001f)
 
 float InverseSqrt(float x);
 

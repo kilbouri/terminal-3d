@@ -36,8 +36,11 @@ void DrawPixel(ColorBuffer* colorBuffer, DepthBuffer* depthBuffer, ScreenPoint p
         return;
     }
 
-    if (depth >= depthBuffer->contents[ToFlat(y, x, width)]) {
-        // don't draw if behind another pixel
+    const float existingDepth = depthBuffer->contents[ToFlat(y, x, width)];
+    const float depthDifference = existingDepth - depth; // when positive, the existing pixel is further away
+
+    // Don't draw if the existing pixel is closer, OR if the difference is approximately zero (fix for edge fighting)
+    if (depthDifference <= 0 || Approx(depthDifference, 0)) {
         return;
     }
 

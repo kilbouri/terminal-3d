@@ -98,6 +98,9 @@ int main(int argc, char** argv) {
         int trianglesDrawn = 0;
         int trianglesCulled = 0;
 
+        // TODO: stop assuming that we're actually operating at the FPS cap (could be below for example)
+        float deltaTime = 1.0f / MAX_FPS;
+
         rasterStart = clock();
         for (int triangleIndex = 0; triangleIndex < model->triangleCount; triangleIndex++) {
             Vector3 v1 = ApplyTransform(model->triangles[triangleIndex].v1, modelTransform);
@@ -109,7 +112,6 @@ int main(int argc, char** argv) {
 
             // Backface culling disabled in wireframe mode (cuz it looks odd)
             if (!engineConfig.wireframeMode && engineConfig.backfaceCulling) {
-                // We don't normalize here because we only care about sign of dotproduct, not magnitude.
                 float dotProduct = DotVector3(normal, SubVector3(v1, ZerosVector3));
 
                 if (dotProduct >= 0) {
@@ -147,23 +149,20 @@ int main(int argc, char** argv) {
 
             Color triangleColor;
 
-            if (TRIANGLE_COLOR_MODE == TCM_INDEX) {
-                const float minBrightness = 0.25;
+            if (SHADING_MODE == SM_INDEX) {
+                const float minBrightness = INDEX_AMBIENT_LIGHT;
                 const float inverseTriangleCount = (1.0f - minBrightness) / model->triangleCount;
                 const float brightness = (inverseTriangleCount * triangleIndex) + minBrightness;
-                triangleColor = (Color) {
-                    .r = brightness * COLOR_CHANNEL_MAX,
-                    .g = brightness * COLOR_CHANNEL_MAX,
-                    .b = brightness * COLOR_CHANNEL_MAX,
-                };
-            } else if (TRIANGLE_COLOR_MODE == TCM_NORMAL) {
-                triangleColor = (Color) {
-                    .r = Clamp((unsigned int)(normal.x * COLOR_CHANNEL_MAX), COLOR_CHANNEL_MIN, COLOR_CHANNEL_MAX),
-                    .g = Clamp((unsigned int)(normal.y * COLOR_CHANNEL_MAX), COLOR_CHANNEL_MIN, COLOR_CHANNEL_MAX),
-                    .b = Clamp((unsigned int)(normal.z * COLOR_CHANNEL_MAX), COLOR_CHANNEL_MIN, COLOR_CHANNEL_MAX),
-                };
-            } else if (TRIANGLE_COLOR_MODE == TCM_SHADED) {
-                triangleColor = COLOR_WHITE;
+
+                triangleColor = ColorFromHSV(0, 0, brightness);
+            } else if (SHADING_MODE == SM_NORMAL) {
+                // Negated components cuz positive normals point into screen and aren't visible lol
+                triangleColor = ColorFromRGB(-normal.x, -normal.y, -normal.z);
+            } else if (SHADING_MODE == SM_PHONG_SHADING) {
+                const float phong = Clamp(DotVector3(normal, NormalizeVector3(LIGHT_DIRECTION)), 0, 1);
+                const float brightness = (phong * PHONG_STRENGTH) + PHONG_AMBIENT_LIGHT;
+
+                triangleColor = ColorFromHSV(0, 0, brightness);
             }
 
             // If we're here, the face was not culled and should be drawn
@@ -190,7 +189,8 @@ int main(int argc, char** argv) {
         ClearColorBuffer(colorBuffer);
         ClearDepthBuffer(depthBuffer);
 
-        modelTransform.rotation = MulQuaternion(FromEuler(ROTATION_PER_FRAME), modelTransform.rotation);
+        Vector3 eulerRotation = MulVector3(ROTATION_PER_SECOND, deltaTime);
+        modelTransform.rotation = MulQuaternion(FromEuler(eulerRotation), modelTransform.rotation);
 
         frameEnd = clock();
 
@@ -209,6 +209,10 @@ int main(int argc, char** argv) {
         LogInfo(logger, "Total triangles: %d", model->triangleCount);
         LogInfo(logger, "\tCulled - %d", trianglesCulled);
         LogInfo(logger, "\tDrawn  - %d", trianglesDrawn);
+
+        // Recompute wait because writing logs takes a non-insignificant time
+        frameEnd = clock();
+        milliSleep = targetElapsed - MilliElapsed(frameEnd, frameStart);
 
         if (milliSleep > 0) {
             usleep(1000 * milliSleep);
