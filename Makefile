@@ -1,7 +1,7 @@
 # THIS FILE IS DESIGNED FOR GNU MAKE
 
 PROG_NAME ?= terminal3d
-CFLAGS ?= -Wall --pedantic -lm -std=gnu11
+CFLAGS ?= -Wall --pedantic -lm -std=gnu11 -g
 
 objects = src/main.o src/TerminalManip.o
 libraries = lib/Logger/Logger.a lib/Engine/Engine.a

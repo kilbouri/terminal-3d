@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "../Engine.h"
+#include "Color.h"
 
 #define CHANNEL_FROM_01(val) \
     ((COLOR_CHANNEL_MAX - COLOR_CHANNEL_MIN) * (val) + COLOR_CHANNEL_MIN)
@@ -32,6 +33,14 @@ Color ColorFromRGB(float red, float green, float blue) {
         .g = CHANNEL_FROM_01(g),
         .b = CHANNEL_FROM_01(b),
     };
+}
+
+bool ColorEquals(Color a, Color b) {
+    // clang-format off
+    return (a.r == b.r)
+        && (a.g == b.g) 
+        && (a.b == b.b);
+    // clang-format on
 }
 
 void WriteColor(Color c) {
