@@ -85,7 +85,6 @@ void RenderColorDifference(ColorBuffer* primary, ColorBuffer* secondary) {
 
             MoveCursorTo(x + 1, y + 1);
             WriteColor(primaryColor);
-            fflush(stdout);
         }
     }
 }
