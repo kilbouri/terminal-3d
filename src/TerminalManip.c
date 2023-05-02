@@ -4,6 +4,10 @@
 #include <unistd.h>
 #include <termios.h>
 
+// clang-format off
+#define IGNORE_RETURN(funcCall) if(!(funcCall));
+// clang-format on
+
 #define SHOW_CURSOR "\033[?25h"
 #define HIDE_CURSOR "\033[?25l"
 
@@ -36,10 +40,10 @@ void SetCursorVisible(bool visible) {
 // to skip any buffering. Intended to be used only in cases where unbuffered output
 // MUST be used, such as an exit handler.
 void SetCursorVisibleImm(bool visible) {
-    write(
-        STDOUT_FILENO,
-        visible ? SHOW_CURSOR : HIDE_CURSOR,
-        visible ? sizeof(SHOW_CURSOR) : sizeof(HIDE_CURSOR));
+    char* controlSequence = visible ? SHOW_CURSOR : HIDE_CURSOR;
+    size_t sequenceLength = visible ? sizeof(SHOW_CURSOR) : sizeof(HIDE_CURSOR);
+
+    IGNORE_RETURN(write(STDOUT_FILENO, controlSequence, sequenceLength));
 }
 
 void CursorToHome() {

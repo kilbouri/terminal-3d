@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
         Die(EINVAL, "Missing one or more required arguments");
     }
 
-    Logger logger = GetFileLogger("terminal3d.log", LEVEL_INFO_I);
+    Logger logger = GetFileLogger(LOG_FILE_NAME, LEVEL_INFO_I);
 
     int viewWidth = atoi(argv[1]);
     int viewHeight = atoi(argv[2]);
@@ -63,6 +63,9 @@ int main(int argc, char** argv) {
         LogInfo(logger, "Succesfully opened " MODEL_SOURCE " as STL model");
         fclose(modelFile);
     }
+
+    LogInfo(logger, "Resolution       - %d x %d", engineConfig.viewportWidth, engineConfig.viewportHeight);
+    LogInfo(logger, "Double Buffering - %s", USE_DOUBLE_BUFFERING ? "on" : "off");
 
     // Allocate required buffers
     ColorBuffer* currentFrameColor = GetColorBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
@@ -193,9 +196,6 @@ int main(int argc, char** argv) {
 
         SetCursorVisible(false);
 
-        // TODO: on second frame, secondary buffer appears to not contain image data
-        // from first frame!
-
         // On first frame, we have to use single buffer
         // rendering since the second buffer isn't ready yet
         if (USE_DOUBLE_BUFFERING && !firstFrame) {
@@ -229,7 +229,6 @@ int main(int argc, char** argv) {
         unsigned int outputTime = MilliElapsed(outputEnd, outputStart);
         int milliSleep = targetElapsed - frameTotal;
 
-        LogInfo(logger, "Resolution: %d x %d", engineConfig.viewportWidth, engineConfig.viewportHeight);
         LogInfo(logger, "Total frame time: %u ms (of %u for FPS cap)", frameTotal, targetElapsed);
         LogInfo(logger, "\tRaster - %u ms", rasterTime);
         LogInfo(logger, "\tOutput - %u ms", outputTime);
@@ -271,7 +270,11 @@ int main(int argc, char** argv) {
 
 inline static bool ShouldExit() {
     char charBuf;
-    read(STDIN_FILENO, &charBuf, sizeof(char));
+    int bytesRead = read(STDIN_FILENO, &charBuf, sizeof(char));
+
+    if (bytesRead != sizeof(char)) {
+        return false;
+    }
 
     return charBuf == 'q' || charBuf == 'Q';
 }

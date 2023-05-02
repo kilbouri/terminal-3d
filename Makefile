@@ -13,10 +13,10 @@ $(PROG_NAME): $(config) $(objects) $(libraries)
 	$(CC) $(objects) $(libraries) -o $(PROG_NAME) $(CFLAGS) 
 
 lib/Engine/Engine.a: FORCE
-	make --no-print-directory -C lib/Engine
+	make --no-print-directory -C lib/Engine CLFAGS="${CFLAGS}"
 
 lib/Logger/Logger.a: FORCE
-	make --no-print-directory -C lib/Logger
+	make --no-print-directory -C lib/Logger CLFAGS="${CFLAGS}"
 
 .PHONY: clean
 clean:
