@@ -60,14 +60,14 @@ void FreeDepthBuffer(DepthBuffer* buff) {
     free(buff);
 }
 
-void Render(ColorBuffer* colorBuffer) {
+void RenderColor(ColorBuffer* colorBuffer) {
     int numElements = colorBuffer->w * colorBuffer->h;
     for (int i = 0; i < numElements; i++) {
         WriteColor(colorBuffer->contents[i]);
     }
 }
 
-void DoubleBufferedRender(ColorBuffer* primary, ColorBuffer* secondary) {
+void RenderColorDifference(ColorBuffer* primary, ColorBuffer* secondary) {
     assert(primary->w == secondary->w);
     assert(primary->h == secondary->h);
 
@@ -83,8 +83,9 @@ void DoubleBufferedRender(ColorBuffer* primary, ColorBuffer* secondary) {
                 continue;
             }
 
-            MoveCursorTo(x, y);
+            MoveCursorTo(x + 1, y + 1);
             WriteColor(primaryColor);
+            fflush(stdout);
         }
     }
 }
@@ -103,7 +104,7 @@ void RenderDepth(DepthBuffer* depthBuffer, float zNear, float zFar) {
     }
 }
 
-void DoubleBufferedRenderDepth(DepthBuffer* primary, DepthBuffer* secondary, float zNear, float zFar) {
+void RenderDepthDifference(DepthBuffer* primary, DepthBuffer* secondary, float zNear, float zFar) {
     assert(primary->w == secondary->w);
     assert(primary->h == secondary->h);
 
@@ -120,7 +121,7 @@ void DoubleBufferedRenderDepth(DepthBuffer* primary, DepthBuffer* secondary, flo
                 continue;
             }
 
-            MoveCursorTo(x, y);
+            MoveCursorTo(x + 1, y + 1);
 
             float rawDepth01 = (primaryDepth - zNear) * denom;
             float clampedDepth01 = Clamp(rawDepth01, 0, 1);
@@ -130,4 +131,10 @@ void DoubleBufferedRenderDepth(DepthBuffer* primary, DepthBuffer* secondary, flo
             WriteColor(color);
         }
     }
+}
+
+void SwapBuffers(void** primary, void** secondary) {
+    void* temp = *primary;
+    *primary = *secondary;
+    *secondary = temp;
 }

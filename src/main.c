@@ -65,19 +65,19 @@ int main(int argc, char** argv) {
     }
 
     // Allocate required buffers
-    ColorBuffer* primaryColorBuffer = GetColorBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
-    DepthBuffer* primaryDepthBuffer = GetDepthBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
+    ColorBuffer* currentFrameColor = GetColorBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
+    DepthBuffer* currentFrameDepth = GetDepthBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
 
-    ColorBuffer* secondaryColorBuffer;
-    DepthBuffer* secondaryDepthBuffer;
+    ColorBuffer* previousFrameColor;
+    DepthBuffer* previousFrameDepth;
 
     if (USE_DOUBLE_BUFFERING) {
-        secondaryColorBuffer = GetColorBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
-        secondaryDepthBuffer = GetDepthBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
+        previousFrameColor = GetColorBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
+        previousFrameDepth = GetDepthBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
     } else {
         // When double buffering is disabled, point back to primary buffer
-        secondaryColorBuffer = primaryColorBuffer;
-        secondaryDepthBuffer = primaryDepthBuffer;
+        previousFrameColor = currentFrameColor;
+        previousFrameDepth = currentFrameDepth;
     }
 
     // Initial model transform
@@ -182,9 +182,9 @@ int main(int argc, char** argv) {
             // If we're here, the face was not culled and should be drawn
             trianglesDrawn += 1;
             if (engineConfig.wireframeMode) {
-                DrawWireTriangle(primaryColorBuffer, primaryDepthBuffer, v1Point, v2Point, v3Point, triangleColor);
+                DrawWireTriangle(currentFrameColor, currentFrameDepth, v1Point, v2Point, v3Point, triangleColor);
             } else {
-                FillTriangle(primaryColorBuffer, primaryDepthBuffer, v1Point, v2Point, v3Point, triangleColor);
+                FillTriangle(currentFrameColor, currentFrameDepth, v1Point, v2Point, v3Point, triangleColor);
             }
         }
 
@@ -193,33 +193,29 @@ int main(int argc, char** argv) {
 
         SetCursorVisible(false);
 
+        // TODO: on second frame, secondary buffer appears to not contain image data
+        // from first frame!
+
         // On first frame, we have to use single buffer
         // rendering since the second buffer isn't ready yet
         if (USE_DOUBLE_BUFFERING && !firstFrame) {
-            DoubleBufferedRender(primaryColorBuffer, secondaryColorBuffer);
+            RenderColorDifference(currentFrameColor, previousFrameColor);
         } else {
-            Render(primaryColorBuffer);
+            RenderColor(currentFrameColor);
         }
 
-        // swap buffer pointers
-        ColorBuffer* tempColor = primaryColorBuffer;
-        DepthBuffer* tempDepth = primaryDepthBuffer;
+        SwapBuffers((void**)&currentFrameColor, (void**)&previousFrameColor);
+        SwapBuffers((void**)&currentFrameDepth, (void**)&previousFrameDepth);
 
-        primaryColorBuffer = secondaryColorBuffer;
-        primaryDepthBuffer = secondaryDepthBuffer;
-
-        secondaryColorBuffer = tempColor;
-        secondaryDepthBuffer = tempDepth;
+        // reset target buffers for next frame
+        ClearColorBuffer(currentFrameColor);
+        ClearDepthBuffer(currentFrameDepth);
 
         CursorToHome();
         SetCursorVisible(true);
 
         fflush(stdout);
         outputEnd = clock();
-
-        // reset target buffers for next frame
-        ClearColorBuffer(primaryColorBuffer);
-        ClearDepthBuffer(primaryDepthBuffer);
 
         Vector3 eulerRotation = MulVector3(ROTATION_PER_SECOND, deltaTime);
         modelTransform.rotation = MulQuaternion(FromEuler(eulerRotation), modelTransform.rotation);
@@ -260,13 +256,13 @@ int main(int argc, char** argv) {
     free(model);
     CloseLogger(logger);
 
-    FreeColorBuffer(primaryColorBuffer);
-    FreeDepthBuffer(primaryDepthBuffer);
+    FreeColorBuffer(currentFrameColor);
+    FreeDepthBuffer(currentFrameDepth);
 
     // Avoid double free by guarding the secondary buffers free
     if (USE_DOUBLE_BUFFERING) {
-        FreeColorBuffer(secondaryColorBuffer);
-        FreeDepthBuffer(secondaryDepthBuffer);
+        FreeColorBuffer(previousFrameColor);
+        FreeDepthBuffer(previousFrameDepth);
     }
 
     ExitHandler();

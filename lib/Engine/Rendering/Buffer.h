@@ -21,10 +21,12 @@ ColorBuffer* GetColorBuffer(int width, int height);
 void ClearColorBuffer(ColorBuffer* buff);
 void FreeColorBuffer(ColorBuffer* buff);
 
-void Render(ColorBuffer* colorBuffer);
-void DoubleBufferedRender(ColorBuffer* primary, ColorBuffer* secondary);
+void RenderColor(ColorBuffer* colorBuffer);
+void RenderColorDifference(ColorBuffer* primary, ColorBuffer* secondary);
 
 void RenderDepth(DepthBuffer* colorBuffer, float zNear, float zFar);
-void DoubleBufferedRenderDepth(DepthBuffer* primary, DepthBuffer* secondary, float zNear, float zFar);
+void RenderDepthDifference(DepthBuffer* primary, DepthBuffer* secondary, float zNear, float zFar);
+
+void SwapBuffers(void** primary, void** secondary);
 
 #endif // BUFFER_H
