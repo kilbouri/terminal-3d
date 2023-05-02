@@ -8,6 +8,8 @@
 #define MAX_FPS 24
 #define RECOMPUTE_NORMALS false
 #define MONOSPACE_ASPECT_RATIO 2
+#define USE_DOUBLE_BUFFERING true
+#define LOG_FILE_NAME "terminal3d.log"
 
 // PROJECTION CONFIG
 #define Z_FAR 10

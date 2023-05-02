@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
         Die(EINVAL, "Missing one or more required arguments");
     }
 
-    Logger logger = GetFileLogger("terminal3d.log", LEVEL_INFO_I);
+    Logger logger = GetFileLogger(LOG_FILE_NAME, LEVEL_INFO_I);
 
     int viewWidth = atoi(argv[1]);
     int viewHeight = atoi(argv[2]);
@@ -64,10 +64,24 @@ int main(int argc, char** argv) {
         fclose(modelFile);
     }
 
+    LogInfo(logger, "Resolution       - %d x %d", engineConfig.viewportWidth, engineConfig.viewportHeight);
+    LogInfo(logger, "Double Buffering - %s", USE_DOUBLE_BUFFERING ? "on" : "off");
+
     // Allocate required buffers
-    ColorBuffer* colorBuffer = GetColorBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
-    DepthBuffer* depthBuffer = GetDepthBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
-    clock_t frameStart, frameEnd, rasterStart, rasterEnd, outputStart, outputEnd;
+    ColorBuffer* currentFrameColor = GetColorBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
+    DepthBuffer* currentFrameDepth = GetDepthBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
+
+    ColorBuffer* previousFrameColor;
+    DepthBuffer* previousFrameDepth;
+
+    if (USE_DOUBLE_BUFFERING) {
+        previousFrameColor = GetColorBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
+        previousFrameDepth = GetDepthBuffer(engineConfig.viewportWidth, engineConfig.viewportHeight);
+    } else {
+        // When double buffering is disabled, point back to primary buffer
+        previousFrameColor = currentFrameColor;
+        previousFrameDepth = currentFrameDepth;
+    }
 
     // Initial model transform
     Transform modelTransform = {
@@ -92,7 +106,10 @@ int main(int argc, char** argv) {
         }
     }
 
-    for (int i = 0; !ShouldExit(); i++) {
+    clock_t frameStart, frameEnd, rasterStart, rasterEnd, outputStart, outputEnd;
+
+    bool firstFrame = true;
+    while (!ShouldExit()) {
         frameStart = clock();
 
         int trianglesDrawn = 0;
@@ -168,9 +185,9 @@ int main(int argc, char** argv) {
             // If we're here, the face was not culled and should be drawn
             trianglesDrawn += 1;
             if (engineConfig.wireframeMode) {
-                DrawWireTriangle(colorBuffer, depthBuffer, v1Point, v2Point, v3Point, triangleColor);
+                DrawWireTriangle(currentFrameColor, currentFrameDepth, v1Point, v2Point, v3Point, triangleColor);
             } else {
-                FillTriangle(colorBuffer, depthBuffer, v1Point, v2Point, v3Point, triangleColor);
+                FillTriangle(currentFrameColor, currentFrameDepth, v1Point, v2Point, v3Point, triangleColor);
             }
         }
 
@@ -178,16 +195,27 @@ int main(int argc, char** argv) {
         outputStart = clock();
 
         SetCursorVisible(false);
-        Render(colorBuffer);
+
+        // On first frame, we have to use single buffer
+        // rendering since the second buffer isn't ready yet
+        if (USE_DOUBLE_BUFFERING && !firstFrame) {
+            RenderColorDifference(currentFrameColor, previousFrameColor);
+        } else {
+            RenderColor(currentFrameColor);
+        }
+
+        SwapBuffers((void**)&currentFrameColor, (void**)&previousFrameColor);
+        SwapBuffers((void**)&currentFrameDepth, (void**)&previousFrameDepth);
+
+        // reset target buffers for next frame
+        ClearColorBuffer(currentFrameColor);
+        ClearDepthBuffer(currentFrameDepth);
+
         CursorToHome();
         SetCursorVisible(true);
 
         fflush(stdout);
         outputEnd = clock();
-
-        // reset buffers for next frame
-        ClearColorBuffer(colorBuffer);
-        ClearDepthBuffer(depthBuffer);
 
         Vector3 eulerRotation = MulVector3(ROTATION_PER_SECOND, deltaTime);
         modelTransform.rotation = MulQuaternion(FromEuler(eulerRotation), modelTransform.rotation);
@@ -201,7 +229,6 @@ int main(int argc, char** argv) {
         unsigned int outputTime = MilliElapsed(outputEnd, outputStart);
         int milliSleep = targetElapsed - frameTotal;
 
-        LogInfo(logger, "Resolution: %d x %d", engineConfig.viewportWidth, engineConfig.viewportHeight);
         LogInfo(logger, "Total frame time: %u ms (of %u for FPS cap)", frameTotal, targetElapsed);
         LogInfo(logger, "\tRaster - %u ms", rasterTime);
         LogInfo(logger, "\tOutput - %u ms", outputTime);
@@ -217,21 +244,37 @@ int main(int argc, char** argv) {
         if (milliSleep > 0) {
             usleep(1000 * milliSleep);
         }
+
+        // First frame has officially been drawn
+        firstFrame = false;
     }
 
+    // Shutdown procedure
     LogInfo(logger, "Exit key pressed, exiting.");
 
     free(model);
     CloseLogger(logger);
-    FreeColorBuffer(colorBuffer);
-    FreeDepthBuffer(depthBuffer);
+
+    FreeColorBuffer(currentFrameColor);
+    FreeDepthBuffer(currentFrameDepth);
+
+    // Avoid double free by guarding the secondary buffers free
+    if (USE_DOUBLE_BUFFERING) {
+        FreeColorBuffer(previousFrameColor);
+        FreeDepthBuffer(previousFrameDepth);
+    }
+
     ExitHandler();
     return 0;
 }
 
 inline static bool ShouldExit() {
     char charBuf;
-    read(STDIN_FILENO, &charBuf, sizeof(char));
+    int bytesRead = read(STDIN_FILENO, &charBuf, sizeof(char));
+
+    if (bytesRead != sizeof(char)) {
+        return false;
+    }
 
     return charBuf == 'q' || charBuf == 'Q';
 }

@@ -1,6 +1,8 @@
 #ifndef COLOR_H
 #define COLOR_H
 
+#include <stdbool.h>
+
 typedef struct {
     unsigned char r, g, b;
 } Color;
@@ -15,6 +17,7 @@ typedef struct {
 
 Color ColorFromHSV(float hue, float sat, float val);
 Color ColorFromRGB(float red, float green, float blue);
+bool ColorEquals(Color a, Color b);
 void WriteColor(Color c);
 
 #endif // COLOR_H
