@@ -9,6 +9,12 @@ A hobby project to create a fairly decent realtime 3D renderer in the terminal. 
     - This means all code is written to work on GNU/Linux, and *likely* works on Mac too.
     - No consideration for Windows whatsoever. If you're on Windows, use Docker or WSL.
 
+## Demo Image
+
+Icosphere rendered with Terminal 3D using the Phong shading model (see below).
+
+![Icosphere render example](./readme_images/sphere_demo.png)
+
 ## Features
 
 - Framerate limiting
